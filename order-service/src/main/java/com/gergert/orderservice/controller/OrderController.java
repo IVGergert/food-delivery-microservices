@@ -26,7 +26,7 @@ public class OrderController {
     public OrderDto create(@Valid @RequestBody CreateOrderRequestDto requestDto,
                            @AuthenticationPrincipal JwtClaimsDto claims) {
 
-        log.info("Create order request by user userId={}, email={}", claims.userId(), claims.email());
+        log.info("Create order request by user userId={}", claims.userId());
         var saved = orderService.create(requestDto, claims.userId());
         return orderMapper.toOrderDto(saved);
     }

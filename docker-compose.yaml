@@ -194,12 +194,16 @@ services:
       - JWT_EXPIRATION_MS_JWT_TOKEN=${JWT_EXPIRATION_MS_JWT_TOKEN}
       - JWT_EXPIRATION_MS_REFRESH_TOKEN=${JWT_EXPIRATION_MS_REFRESH_TOKEN}
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
     networks:
       - order-flow-network
     depends_on:
       auth-db:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:8084/actuator/health || exit 1" ]
@@ -338,6 +342,8 @@ services:
     image: redis:7-alpine
     container_name: order-redis
     restart: unless-stopped
+    volumes:
+      - redis_data:/var/lib/redis/data
     ports:
       - "6379:6379"
     networks:
@@ -360,3 +366,4 @@ volumes:
   postgres_auth_data:
   kafka_data:
   minio-data:
+  redis_data:

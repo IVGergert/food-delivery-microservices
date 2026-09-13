@@ -24,11 +24,10 @@ public class PaymentController {
     public CreatePaymentResponseDto createPayment(@Valid @RequestBody CreatePaymentRequestDto requestDto,
                                                   @AuthenticationPrincipal JwtClaimsDto claims){
 
-        log.info("Processing payment for orderId={}, amount={} initiated by userId={}, email={}",
+        log.info("Processing payment for orderId={}, amount={} initiated by userId={}",
                 requestDto.orderId(),
                 requestDto.amount(),
-                claims.userId(),
-                claims.email());
+                claims.userId());
 
         return paymentService.makePayment(requestDto);
     }

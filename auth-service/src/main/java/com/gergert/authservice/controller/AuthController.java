@@ -1,17 +1,15 @@
 package com.gergert.authservice.controller;
 
-import com.gergert.authservice.dto.AuthResponseDto;
-import com.gergert.authservice.dto.LoginRequestDto;
-import com.gergert.authservice.dto.RegisterRequestDto;
-import com.gergert.authservice.security.jwt.JwtTokenService;
+import com.gergert.authservice.dto.*;
+import com.gergert.authservice.security.cookie.JwtCookieService;
 import com.gergert.authservice.service.AuthService;
-import com.gergert.common.dto.jwt.JwtClaimsDto;
-import com.gergert.common.security.JwtTokenValidator;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
+import org.springframework.security.web.csrf.CsrfToken;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,73 +17,67 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
-    private final JwtTokenValidator jwtTokenValidator;
-    private final JwtTokenService jwtTokenService;
+    private final JwtCookieService jwtCookieService;
 
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponseDto> login(@Valid @RequestBody LoginRequestDto loginDto) {
-
-        AuthResponseDto response = authService.login(loginDto);
-        return ResponseEntity.ok(response);
+    @Operation(security = {})
+    @GetMapping("/csrf")
+    public ResponseEntity<String> csrf(CsrfToken csrfToken) {
+        return ResponseEntity.ok(csrfToken.getToken());
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<AuthResponseDto> register(@Valid @RequestBody RegisterRequestDto registerDto) {
+    @Operation(security = {})
+    @PostMapping("/login")
+    public ResponseEntity<UserResponseDto> login(@Valid @RequestBody LoginRequestDto loginDto,
+                                                 HttpServletResponse response) {
 
-        AuthResponseDto response = authService.register(registerDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        AuthResultDto authResultDto = authService.login(loginDto);
+
+        jwtCookieService.addAuthenticationCookies(
+                response,
+                authResultDto.tokens().accessToken(),
+                authResultDto.tokens().refreshToken()
+        );
+
+        return ResponseEntity.ok(authResultDto.response());
+    }
+
+    @Operation(security = {})
+    @PostMapping("/register")
+    public ResponseEntity<UserResponseDto> register(@Valid @RequestBody RegisterRequestDto registerDto,
+                                                    HttpServletResponse response) {
+
+        AuthResultDto authResultDto = authService.register(registerDto);
+
+        jwtCookieService.addAuthenticationCookies(
+                response,
+                authResultDto.tokens().accessToken(),
+                authResultDto.tokens().refreshToken()
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(authResultDto.response());
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponseDto> refresh(@RequestHeader("Authorization") String bearerToken) {
-        String refreshToken = bearerToken.substring(7);
+    public ResponseEntity<UserResponseDto> refresh(@CookieValue(value = "refreshToken", required = false) String refreshToken,
+                                                   HttpServletResponse response) {
 
-        if (!jwtTokenValidator.validateJwtToken(refreshToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+        AuthResultDto authResultDto = authService.refresh(refreshToken);
 
-        if (!"REFRESH".equals(jwtTokenValidator.getTokenType(refreshToken))) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+        jwtCookieService.addAuthenticationCookies(
+                response,
+                authResultDto.tokens().accessToken(),
+                authResultDto.tokens().refreshToken()
+        );
 
-        JwtClaimsDto claims = jwtTokenValidator.getClaimsFromToken(refreshToken);
-
-        AuthResponseDto response = AuthResponseDto.builder()
-                .accessJwtToken(jwtTokenService.generateAccessJwtToken(claims))
-                .refreshJwtToken(jwtTokenService.generateRefreshJwtToken(claims))
-                .tokenType("Bearer")
-                .userId(claims.userId())
-                .email(claims.email())
-                .role(claims.role())
-                .build();
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(authResultDto.response());
     }
 
-    @GetMapping("/validate")
-    public ResponseEntity<JwtClaimsDto> validate(@RequestHeader("Authorization") String bearerToken) {
-        String token = extractToken(bearerToken);
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@CookieValue(value = "refreshToken", required = false) String refreshToken,
+                                       HttpServletResponse response) {
 
-        if (!jwtTokenValidator.validateJwtToken(token)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        if (!"ACCESS".equals(jwtTokenValidator.getTokenType(token))) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        return ResponseEntity.ok(jwtTokenValidator.getClaimsFromToken(token));
-    }
-
-    private String extractToken(String bearerToken) {
-        if (!StringUtils.hasText(bearerToken)) {
-            return null;
-        }
-
-        if (bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-
-        return bearerToken;
+        authService.logout(refreshToken);
+        jwtCookieService.clearAuthenticationCookies(response);
+        return ResponseEntity.noContent().build();
     }
 }

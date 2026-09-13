@@ -3,6 +3,7 @@ package com.gergert.common.security;
 import com.gergert.common.dto.jwt.JwtClaimsDto;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
@@ -22,8 +23,9 @@ import java.util.Collections;
 @Component
 @RequiredArgsConstructor
 public class JwtCommonFilter extends OncePerRequestFilter {
-    private final JwtTokenValidator tokenValidator;
+    private static final String ACCESS_TOKEN_COOKIE = "accessToken";
 
+    private final JwtTokenValidator tokenValidator;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -35,22 +37,7 @@ public class JwtCommonFilter extends OncePerRequestFilter {
             String jwtToken = getTokenFromRequest(request);
 
             if (jwtToken != null && tokenValidator.validateJwtToken(jwtToken)) {
-
-                if ("ACCESS".equals(tokenValidator.getTokenType(jwtToken))) {
-
-                    JwtClaimsDto claims = tokenValidator.getClaimsFromToken(jwtToken);
-                    SimpleGrantedAuthority authority = new SimpleGrantedAuthority(claims.role().name());
-
-                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                            claims,
-                            null,
-                            Collections.singletonList(authority)
-                    );
-
-                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-
-                    log.debug("User authenticated: id={}, email={}, role={}", claims.userId(), claims.email(), claims.role());
-                }
+                authenticateUser(jwtToken);
             }
         } catch (Exception e) {
             log.error("Authentication error: {}", e.getMessage());
@@ -59,10 +46,35 @@ public class JwtCommonFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    private void authenticateUser(String jwtToken) {
+        if ("ACCESS".equals(tokenValidator.getTokenType(jwtToken))) {
+
+            JwtClaimsDto claims = tokenValidator.getClaimsFromToken(jwtToken);
+            SimpleGrantedAuthority authority = new SimpleGrantedAuthority(claims.role().name());
+
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                    claims,
+                    null,
+                    Collections.singletonList(authority)
+            );
+
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+            log.debug("User authenticated: id={}, role={}",
+                    claims.userId(),
+                    claims.role());
+        }
+    }
+
     private String getTokenFromRequest(HttpServletRequest request){
-        String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+        if (request.getCookies() == null) {
+            return null;
+        }
+
+        for (Cookie cookie : request.getCookies()) {
+            if (ACCESS_TOKEN_COOKIE.equals(cookie.getName()) && StringUtils.hasText(cookie.getValue())) {
+                return cookie.getValue();
+            }
         }
 
         return null;

@@ -14,32 +14,80 @@ class RequestDtoValidationTest {
 
     @BeforeAll
     static void setUp() {
-        validator = Validation.buildDefaultValidatorFactory().getValidator();
+        validator = Validation
+                .buildDefaultValidatorFactory()
+                .getValidator();
     }
 
     @Test
     void login_shouldRejectBlankEmailAndPassword() {
-        var violations = validator.validate(new LoginRequestDto("", ""));
-        assertThat(violations).extracting(v -> v.getPropertyPath().toString())
-                .containsExactlyInAnyOrder("email", "password");
+        var violations = validator.validate(
+                new LoginRequestDto("", "")
+        );
+
+        assertThat(violations)
+                .extracting(
+                        violation ->
+                                violation.getPropertyPath().toString()
+                )
+                .containsExactlyInAnyOrder(
+                        "email",
+                        "password"
+                );
     }
 
     @Test
     void login_shouldRejectInvalidEmail() {
-        var violations = validator.validate(new LoginRequestDto("wrong-email", "password"));
-        assertThat(violations).anyMatch(v -> v.getPropertyPath().toString().equals("email"));
+        var violations = validator.validate(
+                new LoginRequestDto(
+                        "wrong-email",
+                        "password"
+                )
+        );
+
+        assertThat(violations)
+                .anyMatch(violation ->
+                        violation.getPropertyPath()
+                                .toString()
+                                .equals("email")
+                );
     }
 
     @Test
     void register_shouldRejectShortPassword() {
-        var violations = validator.validate(new RegisterRequestDto("user@example.com", "123", "123"));
-        assertThat(violations).anyMatch(v -> v.getPropertyPath().toString().equals("password"));
-        assertThat(violations).anyMatch(v -> v.getPropertyPath().toString().equals("confirmPassword"));
+        var violations = validator.validate(
+                new RegisterRequestDto(
+                        "user@example.com",
+                        "123",
+                        "123"
+                )
+        );
+
+        assertThat(violations)
+                .anyMatch(violation ->
+                        violation.getPropertyPath()
+                                .toString()
+                                .equals("password")
+                );
+
+        assertThat(violations)
+                .anyMatch(violation ->
+                        violation.getPropertyPath()
+                                .toString()
+                                .equals("confirmPassword")
+                );
     }
 
     @Test
     void register_shouldAcceptValidRequest() {
-        var violations = validator.validate(new RegisterRequestDto("user@example.com", "password", "password"));
+        var violations = validator.validate(
+                new RegisterRequestDto(
+                        "user@example.com",
+                        "password",
+                        "password"
+                )
+        );
+
         assertThat(violations).isEmpty();
     }
 }

@@ -45,14 +45,17 @@ public class JwtTokenValidator {
         Claims claims = parseClaims(jwtToken);
 
         return new JwtClaimsDto(
-                claims.get("userId", Long.class),
-                claims.getSubject(),
+                Long.valueOf(claims.getSubject()),
                 Role.valueOf(claims.get("role", String.class))
         );
     }
 
     public String getTokenType(String jwtToken) {
         return parseClaims(jwtToken).get("type", String.class);
+    }
+
+    public String getTokenId(String jwtToken) {
+        return parseClaims(jwtToken).getId();
     }
 
     private Claims parseClaims(String jwtToken) {

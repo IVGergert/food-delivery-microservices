@@ -24,14 +24,22 @@ public class PaymentHttpClientConfig {
                 .baseUrl(paymentServiceBaseUrl)
 
                 .requestInterceptor(((request, body, execution) -> {
+
                     ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
 
                     if (attributes != null) {
                         HttpServletRequest servletRequest = attributes.getRequest();
-                        String authHeader = servletRequest.getHeader(HttpHeaders.AUTHORIZATION);
 
-                        if (authHeader != null) {
-                            request.getHeaders().add(HttpHeaders.AUTHORIZATION, authHeader);
+                        String cookieHeader = servletRequest.getHeader(HttpHeaders.COOKIE);
+
+                        String csrfHeader = servletRequest.getHeader("X-XSRF-TOKEN");
+
+                        if (cookieHeader != null) {
+                            request.getHeaders().add(HttpHeaders.COOKIE, cookieHeader);
+                        }
+
+                        if (csrfHeader != null) {
+                            request.getHeaders().add("X-XSRF-TOKEN", csrfHeader);
                         }
                     }
 

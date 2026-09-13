@@ -1,60 +1,60 @@
-server:
-  port: 8081
+  server:
+    port: 8081
 
-spring:
-  application:
-    name: order-service
+  spring:
+    application:
+      name: order-service
 
-  datasource:
-    url: ${ORDER_DB_URL}
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
-    driver-class-name: org.postgresql.Driver
+    datasource:
+      url: ${ORDER_DB_URL}
+      username: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+      driver-class-name: org.postgresql.Driver
 
-  jpa:
-    hibernate:
-      ddl-auto: validate
+    jpa:
+      hibernate:
+        ddl-auto: validate
 
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
+    flyway:
+      enabled: true
+      locations: classpath:db/migration
+
+    kafka:
+      bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}
+
+      producer:
+        value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+        key-serializer: org.apache.kafka.common.serialization.StringSerializer
+        properties:
+          acks: all
+          retries: 3
+
+      consumer:
+        group-id: order-group
+        auto-offset-reset: earliest
+        key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+        value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+        properties:
+          spring.json.trusted.packages: "com.gergert.common.dto.kafka"
 
   kafka:
-    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}
+    topics:
+      order-paid-events: "order-paid-topic"
+      delivery-assigned-events: "delivery-assigned-topic"
+      order-picked-up-events: "order-picked-up-topic"
+      delivery-completed-events: "delivery-completed-topic"
 
-    producer:
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      properties:
-        acks: all
-        retries: 3
+  payment-service:
+    base-url: ${PAYMENT_SERVICE_URL}
 
-    consumer:
-      group-id: order-group
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "com.gergert.common.dto.kafka"
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health
+    endpoint:
+      health:
+        show-details: never
 
-kafka:
-  topics:
-    order-paid-events: "order-paid-topic"
-    delivery-assigned-events: "delivery-assigned-topic"
-    order-picked-up-events: "order-picked-up-topic"
-    delivery-completed-events: "delivery-completed-topic"
-
-payment-service:
-  base-url: ${PAYMENT_SERVICE_URL}
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
-  endpoint:
-    health:
-      show-details: never
-
-jwt:
-  secret: ${JWT_SECRET}
+  jwt:
+    secret: ${JWT_SECRET}

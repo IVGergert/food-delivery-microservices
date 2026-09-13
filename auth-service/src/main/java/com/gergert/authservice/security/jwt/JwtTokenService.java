@@ -1,41 +1,38 @@
 package com.gergert.authservice.security.jwt;
 
-
 import com.gergert.common.dto.jwt.JwtClaimsDto;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.UUID;
 
-@Slf4j
 @Service
 public class JwtTokenService {
     private final SecretKey secret;
-    private final Long expirationMsForJwtToken;
+    private final Long expirationMsForAccessToken;
     private final Long expirationMsForRefreshToken;
 
     public JwtTokenService(
             @Value("${jwt.secret}") String secret,
-            @Value("${jwt.expiration-ms-jwt-token}") long expirationMsForJwtToken,
+            @Value("${jwt.expiration-ms-jwt-token}") long expirationMsForAccessToken,
             @Value("${jwt.expiration-ms-refresh-token}") long expirationMsForRefreshToken) {
 
         this.secret = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        this.expirationMsForJwtToken = expirationMsForJwtToken;
+        this.expirationMsForAccessToken = expirationMsForAccessToken;
         this.expirationMsForRefreshToken = expirationMsForRefreshToken;
     }
 
     public String generateAccessJwtToken(JwtClaimsDto dto) {
         Date now = new Date();
-        Date expirationDate = new Date(now.getTime() + expirationMsForJwtToken);
+        Date expirationDate = new Date(now.getTime() + expirationMsForAccessToken);
 
         return Jwts.builder()
-                .subject(dto.email())
-                .claim("userId", dto.userId())
+                .subject(dto.userId().toString())
                 .claim("role", dto.role().name())
                 .claim("type", "ACCESS")
                 .issuedAt(now)
@@ -49,8 +46,8 @@ public class JwtTokenService {
         Date expirationDate = new Date(now.getTime() + expirationMsForRefreshToken);
 
         return Jwts.builder()
-                .subject(dto.email())
-                .claim("userId", dto.userId())
+                .id(UUID.randomUUID().toString())
+                .subject(dto.userId().toString())
                 .claim("role", dto.role().name())
                 .claim("type", "REFRESH")
                 .issuedAt(now)
@@ -58,4 +55,13 @@ public class JwtTokenService {
                 .signWith(secret)
                 .compact();
     }
+
+    public long getAccessTokenExpirationMs() {
+        return expirationMsForAccessToken;
+    }
+
+    public long getRefreshTokenExpirationMs() {
+        return expirationMsForRefreshToken;
+    }
+
 }
