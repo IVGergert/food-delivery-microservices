@@ -216,6 +216,7 @@ services:
 
   order-db:
     image: postgres:17-alpine
+    container_name: order-db
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${ORDER_DB_NAME}
