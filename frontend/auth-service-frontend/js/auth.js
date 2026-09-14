@@ -4,7 +4,7 @@ import {
 } from "./api.js";
 
 import {
-    saveAuthData
+    saveUserData
 } from "./state.js";
 
 import {
@@ -103,7 +103,7 @@ export async function onLogin(event) {
             return;
         }
 
-        saveAuthData(data);
+        saveUserData(data);
         redirectByRole(data.role);
 
     } catch (error) {
@@ -134,7 +134,7 @@ export async function onRegister(event) {
             confirmPassword
         );
 
-        saveAuthData(data);
+        saveUserData(data);
         redirectByRole(data.role);
 
     } catch (error) {

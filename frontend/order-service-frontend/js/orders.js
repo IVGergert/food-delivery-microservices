@@ -3,10 +3,6 @@ import {
 } from "./api.js";
 
 import {
-    buildAuthHeaders
-} from "./auth.js";
-
-import {
     escapeHtml,
     formatDate
 } from "./ui.js";
@@ -52,14 +48,11 @@ export function getOrderStatusClass(status) {
 }
 
 export async function loadMyOrders() {
-    const container =
-        document.getElementById("ordersList");
+    const container = document.getElementById("ordersList");
 
-    const empty =
-        document.getElementById("ordersEmpty");
+    const empty = document.getElementById("ordersEmpty");
 
-    const loading =
-        document.getElementById("ordersLoading");
+    const loading = document.getElementById("ordersLoading");
 
     if (!container) return;
 
@@ -74,10 +67,7 @@ export async function loadMyOrders() {
     container.innerHTML = "";
 
     try {
-        const response = await get(
-            "/api/orders/my",
-            buildAuthHeaders()
-        );
+        const response = await get("/api/orders/my");
 
         if (!response.ok) {
             throw new Error(

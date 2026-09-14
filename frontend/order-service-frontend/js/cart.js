@@ -3,10 +3,6 @@ import {
 } from "./api.js";
 
 import {
-    buildAuthHeaders
-} from "./auth.js";
-
-import {
     showError,
     showSuccess,
     escapeHtml
@@ -145,8 +141,7 @@ export function updateCartItemsCount() {
 
     const count = getCartCount();
 
-    counter.textContent =
-        `${count} ${getRussianItemWord(count)}`;
+    counter.textContent = `${count} ${getRussianItemWord(count)}`;
 }
 
 export function openCart() {
@@ -175,8 +170,7 @@ export function renderCart() {
     const container = document.getElementById("cartItems");
     const empty = document.getElementById("cartEmpty");
     const totalElement = document.getElementById("cartTotal");
-    const checkoutButton =
-        document.getElementById("checkoutButton");
+    const checkoutButton = document.getElementById("checkoutButton");
 
     if (!container) return;
 
@@ -203,14 +197,11 @@ export function renderCart() {
     }
 
     cartItems.forEach(item => {
-        container.appendChild(
-            createCartItem(item)
-        );
+        container.appendChild(createCartItem(item));
     });
 
     if (totalElement) {
-        totalElement.textContent =
-            formatPrice(getCartTotal());
+        totalElement.textContent = formatPrice(getCartTotal());
     }
 
     if (checkoutButton) {
@@ -306,22 +297,18 @@ export function openCheckout() {
 
     closeCart();
 
-    const modal =
-        document.getElementById("checkoutModal");
+    const modal = document.getElementById("checkoutModal");
 
     if (!modal) return;
 
     clearCheckoutErrors();
 
-    const totalElement =
-        document.getElementById("checkoutTotal");
+    const totalElement = document.getElementById("checkoutTotal");
 
-    const countElement =
-        document.getElementById("checkoutItemsCount");
+    const countElement = document.getElementById("checkoutItemsCount");
 
     if (totalElement) {
-        totalElement.textContent =
-            formatPrice(getCartTotal());
+        totalElement.textContent = formatPrice(getCartTotal());
     }
 
     if (countElement) {
@@ -334,8 +321,7 @@ export function openCheckout() {
 }
 
 export function renderCheckoutItems() {
-    const container =
-        document.getElementById("checkoutItems");
+    const container = document.getElementById("checkoutItems");
 
     if (!container) return;
 
@@ -412,8 +398,7 @@ export async function createOrder() {
         return;
     }
 
-    const addressInput =
-        document.getElementById("deliveryAddress");
+    const addressInput = document.getElementById("deliveryAddress");
 
     const address = addressInput
         ? addressInput.value.trim()
@@ -445,8 +430,7 @@ export async function createOrder() {
         quantity: item.quantity
     }));
 
-    const button =
-        document.getElementById("confirmOrderButton");
+    const button = document.getElementById("confirmOrderButton");
 
     setButtonLoading(button, true);
 
@@ -456,8 +440,7 @@ export async function createOrder() {
             {
                 address,
                 items
-            },
-            buildAuthHeaders()
+            }
         );
 
         if (!response.ok) {
@@ -472,8 +455,7 @@ export async function createOrder() {
             `/api/orders/${order.id}/pay`,
             {
                 paymentMethod
-            },
-            buildAuthHeaders()
+            }
         );
 
         if (!paymentResponse.ok) {
@@ -482,8 +464,7 @@ export async function createOrder() {
             );
         }
 
-        const paidOrder =
-            await paymentResponse.json();
+        const paidOrder = await paymentResponse.json();
 
         cartItems = [];
 
@@ -494,9 +475,7 @@ export async function createOrder() {
 
         closeCheckout();
 
-        showSuccess(
-            `Заказ №${paidOrder.id} успешно оформлен`
-        );
+        showSuccess(`Заказ №${paidOrder.id} успешно оформлен`);
 
         if (
             !document
@@ -514,8 +493,7 @@ export async function createOrder() {
 }
 
 function showCheckoutError(message) {
-    const element =
-        document.getElementById("checkoutError");
+    const element = document.getElementById("checkoutError");
 
     if (!element) return;
 
@@ -524,11 +502,9 @@ function showCheckoutError(message) {
 }
 
 function showCheckoutFieldError(fieldId, message) {
-    const input =
-        document.getElementById(fieldId);
+    const input = document.getElementById(fieldId);
 
-    const error =
-        document.getElementById(`${fieldId}Error`);
+    const error = document.getElementById(`${fieldId}Error`);
 
     if (input) {
         input.classList.add("error");
@@ -541,25 +517,20 @@ function showCheckoutFieldError(fieldId, message) {
 }
 
 function clearCheckoutErrors() {
-    const error =
-        document.getElementById("checkoutError");
+    const error = document.getElementById("checkoutError");
 
     if (error) {
         error.textContent = "";
         error.classList.add("hidden");
     }
 
-    const input =
-        document.getElementById("deliveryAddress");
+    const input = document.getElementById("deliveryAddress");
 
     if (input) {
         input.classList.remove("error");
     }
 
-    const fieldError =
-        document.getElementById(
-            "deliveryAddressError"
-        );
+    const fieldError = document.getElementById("deliveryAddressError");
 
     if (fieldError) {
         fieldError.textContent = "";
@@ -572,8 +543,7 @@ function setButtonLoading(button, loading) {
 
     if (loading) {
         if (!button.dataset.originalText) {
-            button.dataset.originalText =
-                button.textContent;
+            button.dataset.originalText = button.textContent;
         }
 
         button.textContent = "Обработка...";

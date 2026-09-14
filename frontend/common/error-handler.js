@@ -49,14 +49,6 @@ export async function getErrorMessage(response) {
     const data = await response.json().catch(() => null);
 
     if (data?.message) {
-        const firstError = Object.values(data.errors)[0];
-
-        if (firstError) {
-            return translateError(data.message);
-        }
-    }
-
-    if (data?.message) {
         return translateError(data.message);
     }
 

@@ -1,6 +1,5 @@
 import {
     state,
-    getAccessToken,
     logout
 } from "./state.js";
 
@@ -28,10 +27,6 @@ import {
 document.addEventListener(
     "DOMContentLoaded",
     async () => {
-
-        if (!getAccessToken()) {
-            logout();
-        }
 
         renderUserInfo();
 
@@ -165,7 +160,7 @@ document.addEventListener(
             const canLogout = await validateLogout();
 
             if (canLogout) {
-                logout();
+                await logout();
             }
 
             return;

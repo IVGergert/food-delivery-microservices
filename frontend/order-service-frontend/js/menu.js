@@ -4,10 +4,6 @@ import {
 } from "./api.js";
 
 import {
-    buildAuthHeaders,
-} from "./auth.js";
-
-import {
     escapeHtml
 } from "./ui.js";
 
@@ -33,7 +29,7 @@ export async function loadMenu() {
     showMenuLoading();
 
     try {
-        const response = await get("/api/menu", buildAuthHeaders());
+        const response = await get("/api/menu");
 
         if (!response.ok) {
             throw new Error(await getErrorMessage(response));

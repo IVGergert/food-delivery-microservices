@@ -1,5 +1,4 @@
 import {
-    getAccessToken,
     getUserEmail,
     renderUserInfo,
     logout
@@ -32,11 +31,6 @@ import {
 } from "./ui.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
-    if (!getAccessToken()) {
-        window.location.href = "/";
-        return;
-    }
-
     loadCart();
     renderUserInfo();
     renderCategories();

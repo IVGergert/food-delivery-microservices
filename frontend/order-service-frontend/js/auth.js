@@ -1,30 +1,27 @@
-const CART_STORAGE_KEY = "cartItems";
+import {
+    logoutRequest
+} from "./api.js";
 
-export function getAccessToken() {
-    return localStorage.getItem("accessToken");
-}
+const CART_STORAGE_KEY = "cartItems";
 
 export function getUserEmail() {
     return localStorage.getItem("userEmail") || "Пользователь";
 }
 
-export function buildAuthHeaders() {
-    return {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${getAccessToken()}`
-    };
-}
+export async function logout() {
+    try {
+        await logoutRequest();
+    } catch (error) {
+        console.error("Logout error:", error);
+    } finally {
+        localStorage.removeItem("userId");
+        localStorage.removeItem("userEmail");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("userName");
+        localStorage.removeItem(CART_STORAGE_KEY);
 
-export function logout() {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("userEmail");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("userName");
-    localStorage.removeItem(CART_STORAGE_KEY);
-
-    window.location.href = "/";
+        window.location.href = "/";
+    }
 }
 
 export function renderUserInfo() {
