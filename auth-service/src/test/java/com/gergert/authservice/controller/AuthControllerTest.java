@@ -1,6 +1,10 @@
 package com.gergert.authservice.controller;
 
-import com.gergert.authservice.dto.*;
+import com.gergert.authservice.dto.auth.AuthResultDto;
+import com.gergert.authservice.dto.auth.AuthTokensDto;
+import com.gergert.authservice.dto.auth.LoginRequestDto;
+import com.gergert.authservice.dto.auth.RegisterRequestDto;
+import com.gergert.authservice.dto.user.UserResponseDto;
 import com.gergert.authservice.security.cookie.JwtCookieService;
 import com.gergert.authservice.service.AuthService;
 import com.gergert.common.enums.Role;
@@ -45,7 +49,13 @@ class AuthControllerTest {
     @Test
     void login_shouldSetAuthenticationCookiesAndReturnUser() {
         var request = new LoginRequestDto("user@example.com", "password");
-        var user = new UserResponseDto(1L, "user@example.com", Role.ROLE_CUSTOMER);
+        var user = new UserResponseDto(
+                1L,
+                "user@example.com",
+                null,
+                null,
+                Role.ROLE_CUSTOMER
+        );
         var result = new AuthResultDto(user, new AuthTokensDto("access", "refresh", "Bearer"));
         when(authService.login(request)).thenReturn(result);
 
@@ -59,7 +69,13 @@ class AuthControllerTest {
     @Test
     void register_shouldSetAuthenticationCookiesAndReturnCreated() {
         var request = new RegisterRequestDto("user@example.com", "password", "password");
-        var user = new UserResponseDto(1L, "user@example.com", Role.ROLE_CUSTOMER);
+        var user = new UserResponseDto(
+                1L,
+                "user@example.com",
+                null,
+                null,
+                Role.ROLE_CUSTOMER
+        );
         var result = new AuthResultDto(user, new AuthTokensDto("access", "refresh", "Bearer"));
         when(authService.register(request)).thenReturn(result);
 
@@ -72,7 +88,13 @@ class AuthControllerTest {
 
     @Test
     void refresh_shouldReadRefreshCookieAndRotateAuthenticationCookies() {
-        var user = new UserResponseDto(1L, "user@example.com", Role.ROLE_CUSTOMER);
+        var user = new UserResponseDto(
+                1L,
+                "user@example.com",
+                null,
+                null,
+                Role.ROLE_CUSTOMER
+        );
         var result = new AuthResultDto(user, new AuthTokensDto("new-access", "new-refresh", "Bearer"));
         when(authService.refresh("old-refresh")).thenReturn(result);
 

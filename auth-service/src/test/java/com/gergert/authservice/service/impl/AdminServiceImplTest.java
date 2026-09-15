@@ -1,7 +1,7 @@
 package com.gergert.authservice.service.impl;
 
-import com.gergert.authservice.dto.CreateCourierRequestDto;
-import com.gergert.authservice.dto.UserResponseDto;
+import com.gergert.authservice.dto.user.CreateCourierRequestDto;
+import com.gergert.authservice.dto.user.UserResponseDto;
 import com.gergert.authservice.entity.User;
 import com.gergert.authservice.exception.PasswordMismatchException;
 import com.gergert.authservice.exception.UserAlreadyExistsException;
@@ -61,7 +61,10 @@ class AdminServiceImplTest {
         assertThat(result).isEqualTo(new UserResponseDto(
                 10L,
                 "courier@example.com",
-                Role.ROLE_COURIER));
+                null,
+                null,
+                Role.ROLE_COURIER
+        ));
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());

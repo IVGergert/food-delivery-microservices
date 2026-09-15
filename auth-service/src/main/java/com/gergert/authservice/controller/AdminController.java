@@ -1,7 +1,7 @@
 package com.gergert.authservice.controller;
 
-import com.gergert.authservice.dto.CreateCourierRequestDto;
-import com.gergert.authservice.dto.UserResponseDto;
+import com.gergert.authservice.dto.user.CreateCourierRequestDto;
+import com.gergert.authservice.dto.user.UserResponseDto;
 import com.gergert.authservice.service.AdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

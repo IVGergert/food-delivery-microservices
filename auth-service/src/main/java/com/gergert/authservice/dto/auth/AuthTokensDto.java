@@ -1,4 +1,4 @@
-package com.gergert.authservice.dto;
+package com.gergert.authservice.dto.auth;
 
 import lombok.Builder;
 

@@ -15,6 +15,7 @@ const ERROR_TRANSLATIONS = {
     "Name cannot be empty": "Имя не может быть пустым",
     "Transport type cannot be empty": "Тип транспорта не может быть пустым",
     "Validation failed": "Проверьте правильность введённых данных",
+    "Invalid password": "Неверный пароль",
 
     // Users
     "User not found": "Пользователь не найден",

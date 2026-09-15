@@ -72,6 +72,17 @@ export async function post(url, body, headers = {}) {
     });
 }
 
+export async function put(url, body, headers = {}) {
+    return request(url, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            ...headers
+        },
+        body: JSON.stringify(body)
+    });
+}
+
 export function logoutRequest() {
     return request("/api/auth/logout", {
         method: "POST"

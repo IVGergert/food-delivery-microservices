@@ -1,6 +1,10 @@
 package com.gergert.authservice.service.impl;
 
-import com.gergert.authservice.dto.*;
+import com.gergert.authservice.dto.auth.AuthResultDto;
+import com.gergert.authservice.dto.auth.AuthTokensDto;
+import com.gergert.authservice.dto.auth.LoginRequestDto;
+import com.gergert.authservice.dto.auth.RegisterRequestDto;
+import com.gergert.authservice.dto.user.UserResponseDto;
 import com.gergert.authservice.entity.User;
 import com.gergert.authservice.exception.InvalidTokenException;
 import com.gergert.authservice.exception.PasswordMismatchException;
@@ -177,6 +181,8 @@ public class AuthServiceImpl implements AuthService {
         UserResponseDto response = UserResponseDto.builder()
                 .userId(user.getId())
                 .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
                 .role(user.getRole())
                 .build();
 

@@ -1,6 +1,9 @@
 package com.gergert.authservice.controller;
 
-import com.gergert.authservice.dto.*;
+import com.gergert.authservice.dto.auth.AuthResultDto;
+import com.gergert.authservice.dto.auth.LoginRequestDto;
+import com.gergert.authservice.dto.auth.RegisterRequestDto;
+import com.gergert.authservice.dto.user.UserResponseDto;
 import com.gergert.authservice.security.cookie.JwtCookieService;
 import com.gergert.authservice.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;

@@ -1,10 +1,10 @@
 package com.gergert.authservice.service.impl;
 
-import com.gergert.authservice.dto.AuthResultDto;
-import com.gergert.authservice.dto.AuthTokensDto;
-import com.gergert.authservice.dto.LoginRequestDto;
-import com.gergert.authservice.dto.RegisterRequestDto;
-import com.gergert.authservice.dto.UserResponseDto;
+import com.gergert.authservice.dto.auth.AuthResultDto;
+import com.gergert.authservice.dto.auth.AuthTokensDto;
+import com.gergert.authservice.dto.auth.LoginRequestDto;
+import com.gergert.authservice.dto.auth.RegisterRequestDto;
+import com.gergert.authservice.dto.user.UserResponseDto;
 import com.gergert.authservice.entity.User;
 import com.gergert.authservice.exception.InvalidTokenException;
 import com.gergert.authservice.exception.PasswordMismatchException;
@@ -82,7 +82,13 @@ class AuthServiceImplTest {
 
         AuthResultDto result = authService.register(request);
 
-        assertThat(result.response()).isEqualTo(new UserResponseDto(1L, "user@example.com", Role.ROLE_CUSTOMER));
+        assertThat(result.response()).isEqualTo(new UserResponseDto(
+                1L,
+                "user@example.com",
+                null,
+                null,
+                Role.ROLE_CUSTOMER));
+
         assertThat(result.tokens()).isEqualTo(new AuthTokensDto("access-token", "refresh-token", "Bearer"));
         verify(authenticationManager, never()).authenticate(any());
         verify(refreshTokenService).save(eq("refresh-jti"), eq(1L), eq(Duration.ofMillis(REFRESH_EXPIRATION_MS)));
@@ -112,7 +118,12 @@ class AuthServiceImplTest {
 
         AuthResultDto result = authService.login(request);
 
-        assertThat(result.response()).isEqualTo(new UserResponseDto(1L, "user@example.com", Role.ROLE_CUSTOMER));
+        assertThat(result.response()).isEqualTo(new UserResponseDto(
+                1L,
+                "user@example.com",
+                null,
+                null,
+                Role.ROLE_CUSTOMER));
         assertThat(result.tokens()).isEqualTo(new AuthTokensDto("access-token", "refresh-token", "Bearer"));
         verify(authenticationManager).authenticate(any());
         verify(userRepository).findByEmail(request.email());
@@ -156,7 +167,12 @@ class AuthServiceImplTest {
 
         AuthResultDto result = authService.refresh(oldToken);
 
-        assertThat(result.response()).isEqualTo(new UserResponseDto(1L, "user@example.com", Role.ROLE_CUSTOMER));
+        assertThat(result.response()).isEqualTo(new UserResponseDto(
+                1L,
+                "user@example.com",
+                null,
+                null,
+                Role.ROLE_CUSTOMER));
         assertThat(result.tokens()).isEqualTo(new AuthTokensDto("new-access-token", "new-refresh-token", "Bearer"));
         verify(refreshTokenService).delete("old-jti");
         verify(refreshTokenService).save(eq("new-jti"), eq(1L), eq(Duration.ofMillis(REFRESH_EXPIRATION_MS)));
@@ -238,4 +254,6 @@ class AuthServiceImplTest {
         when(jwtTokenValidator.getTokenId("refresh-token")).thenReturn("refresh-jti");
         when(jwtTokenService.getRefreshTokenExpirationMs()).thenReturn(REFRESH_EXPIRATION_MS);
     }
+
+
 }

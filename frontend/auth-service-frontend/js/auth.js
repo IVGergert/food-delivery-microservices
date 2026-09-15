@@ -17,30 +17,48 @@ let selectedRole = "CUSTOMER";
 export function selectRole(type) {
     const btnCustomer = document.getElementById("btnCustomer");
     const btnCourier = document.getElementById("btnCourier");
+    const btnAdmin = document.getElementById("btnAdmin");
+
     const registerTab = document.getElementById("registerTab");
-    const courierNotice = document.getElementById("courierNotice");
+    const roleNotice = document.getElementById("roleNotice");
 
     selectedRole = type;
 
     hideAlert();
 
+    btnCustomer.classList.remove("active");
+    btnCourier.classList.remove("active");
+    btnAdmin.classList.remove("active");
+
     if (type === "CUSTOMER") {
         btnCustomer.classList.add("active");
-        btnCourier.classList.remove("active");
-
         registerTab.classList.remove("hidden");
-        courierNotice.classList.add("hidden");
+
+        roleNotice.classList.add("hidden");
 
         return;
     }
 
-    btnCustomer.classList.remove("active");
-    btnCourier.classList.add("active");
+    if (type === "COURIER") {
+        btnCourier.classList.add("active");
+        registerTab.classList.add("hidden");
 
-    registerTab.classList.add("hidden");
-    courierNotice.classList.remove("hidden");
+        roleNotice.textContent = "Аккаунты курьеров выдаются администратором.";
+        roleNotice.classList.remove("hidden");
 
-    switchTab("login");
+        switchTab("login");
+        return;
+    }
+
+    if (type === "ADMIN") {
+        btnAdmin.classList.add("active");
+        registerTab.classList.add("hidden");
+
+        roleNotice.textContent = "Вход доступен только для администратора.";
+        roleNotice.classList.remove("hidden");
+
+        switchTab("login");
+    }
 }
 
 
@@ -88,17 +106,28 @@ export async function onLogin(event) {
     try {
         const data = await loginRequest(email, password);
 
-        const expectedRole =
-            selectedRole === "CUSTOMER"
-                ? "ROLE_CUSTOMER"
-                : "ROLE_COURIER";
+        let expectedRole;
+
+        switch (selectedRole) {
+            case "CUSTOMER":
+                expectedRole = "ROLE_CUSTOMER";
+                break;
+            case "COURIER":
+                expectedRole = "ROLE_COURIER";
+                break;
+            case "ADMIN":
+                expectedRole = "ROLE_ADMIN";
+                break;
+        }
 
         if (data.role !== expectedRole) {
-            showAlert(
-                selectedRole === "COURIER"
-                    ? "Этот аккаунт не является аккаунтом курьера."
-                    : "Этот аккаунт не является аккаунтом клиента."
-            );
+            const messages = {
+                CUSTOMER: "Этот аккаунт не является аккаунтом клиента.",
+                COURIER: "Этот аккаунт не является аккаунтом курьера.",
+                ADMIN: "Этот аккаунт не является аккаунтом администратора."
+            };
+
+            showAlert(messages[selectedRole]);
 
             return;
         }
@@ -150,5 +179,9 @@ function redirectByRole(role) {
 
     if (role === "ROLE_COURIER") {
         window.location.href = "/courier/";
+    }
+
+    if (role === "ROLE_ADMIN") {
+        window.location.href = "/admin/";
     }
 }

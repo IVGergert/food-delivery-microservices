@@ -4,7 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Food Delivery — Авторизация</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="../common/css/base.css">
+  <link rel="stylesheet" href="../common/css/components.css">
+  <link rel="stylesheet" href="css/auth.css">
 </head>
 
 <body>
@@ -22,6 +24,10 @@
 
         <button id="btnCourier" class="role-btn" onclick="selectRole('COURIER')">
           Я Курьер
+        </button>
+
+        <button id="btnAdmin" class="role-btn" onclick="selectRole('ADMIN')">
+          Я Администратор
         </button>
       </div>
 
@@ -66,9 +72,7 @@
         <button type="submit" class="btn btn-success">Зарегистрироваться</button>
       </form>
 
-      <div id="courierNotice" class="notice hidden">
-        Аккаунты курьеров выдаются администратором.
-      </div>
+      <div id="roleNotice" class="notice hidden"></div>
     </div>
   </div>
 

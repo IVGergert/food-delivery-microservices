@@ -1,7 +1,7 @@
 package com.gergert.authservice.service.impl;
 
-import com.gergert.authservice.dto.CreateCourierRequestDto;
-import com.gergert.authservice.dto.UserResponseDto;
+import com.gergert.authservice.dto.user.CreateCourierRequestDto;
+import com.gergert.authservice.dto.user.UserResponseDto;
 import com.gergert.authservice.entity.User;
 import com.gergert.authservice.exception.PasswordMismatchException;
 import com.gergert.authservice.exception.UserAlreadyExistsException;
@@ -60,6 +60,8 @@ public class AdminServiceImpl implements AdminService {
         return new UserResponseDto(
                 savedUser.getId(),
                 savedUser.getEmail(),
+                savedUser.getFirstName(),
+                savedUser.getLastName(),
                 savedUser.getRole()
         );
     }

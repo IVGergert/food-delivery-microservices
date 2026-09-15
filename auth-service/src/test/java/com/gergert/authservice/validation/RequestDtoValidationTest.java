@@ -1,7 +1,7 @@
 package com.gergert.authservice.validation;
 
-import com.gergert.authservice.dto.LoginRequestDto;
-import com.gergert.authservice.dto.RegisterRequestDto;
+import com.gergert.authservice.dto.auth.LoginRequestDto;
+import com.gergert.authservice.dto.auth.RegisterRequestDto;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeAll;

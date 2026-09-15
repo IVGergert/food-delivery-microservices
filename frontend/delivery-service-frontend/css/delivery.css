@@ -1,0 +1,171 @@
+/* Active delivery */
+
+.active-delivery-card {
+    width: 100%;
+    max-width: 700px;
+    padding: 24px;
+    background: var(--surface);
+    border: 2px solid var(--primary);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-hover);
+}
+
+.active-delivery-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+}
+
+.active-badge {
+    color: var(--primary-dark);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .5px;
+}
+
+.active-delivery-header h2 {
+    margin-top: 2px;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.active-delivery-body {
+    padding: 20px 0;
+}
+
+.delivery-address-box,
+.delivery-meta-grid>div {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-muted);
+}
+
+.delivery-address-box {
+    margin-bottom: 16px;
+    padding: 16px;
+}
+
+.delivery-address-box span,
+.delivery-meta-grid span,
+.delivery-card-body span {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--text-secondary);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .2px;
+}
+
+.delivery-address-box strong {
+    font-size: 16px;
+}
+
+.delivery-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.delivery-meta-grid>div {
+    padding: 12px 16px;
+}
+
+.delivery-meta-grid span {
+    margin-bottom: 2px;
+}
+
+.delivery-meta-grid strong {
+    font-size: 14px;
+}
+
+.active-delivery-actions {
+    display: grid;
+    gap: 10px;
+    padding-top: 4px;
+}
+
+.action-btn {
+    width: 100%;
+    min-height: 48px;
+    font-size: 14px;
+}
+
+.success-btn {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+.success-btn:hover:not(:disabled) {
+    background: #15803d;
+    border-color: #15803d;
+}
+
+/* Delivery lists */
+
+.waiting-list,
+.delivery-page .orders-list {
+    display: grid;
+    gap: 14px;
+}
+
+.delivery-card {
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: .2s ease;
+}
+
+.delivery-card:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-hover);
+}
+
+.delivery-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+.delivery-card-header h3 {
+    font-size: 17px;
+}
+
+.delivery-card-body {
+    display: grid;
+    grid-template-columns: 2fr 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding-top: 14px;
+}
+
+.delivery-card-body span {
+    margin-bottom: 2px;
+}
+
+.delivery-card-body strong {
+    font-size: 14px;
+}
+
+@media (max-width: 760px) {
+    .active-delivery-card {
+        padding: 20px;
+    }
+
+    .delivery-card-body,
+    .delivery-meta-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .active-delivery-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
