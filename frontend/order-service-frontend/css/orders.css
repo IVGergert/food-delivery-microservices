@@ -13,27 +13,22 @@
 }
 
 .orders-header p {
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     font-size: 13px;
-}
-
-.orders-list {
-    display: grid;
-    gap: 14px;
 }
 
 .order-card {
     padding: 20px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
     transition: .2s ease;
 }
 
 .order-card:hover {
     transform: translateY(-1px);
-    box-shadow: var(--shadow-hover);
+    box-shadow: var(--shadow-md);
 }
 
 .order-card-header {
@@ -42,7 +37,7 @@
     justify-content: space-between;
     gap: 15px;
     padding-bottom: 15px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .order-card-header h3 {
@@ -52,7 +47,7 @@
 .order-date {
     display: block;
     margin-top: 3px;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     font-size: 11px;
 }
 
@@ -71,7 +66,7 @@
 .order-card-info span {
     display: block;
     margin-bottom: 4px;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: .3px;
@@ -124,15 +119,15 @@
 .order-info-item {
     min-width: 0;
     padding: 14px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--color-border);
     border-radius: 10px;
-    background: var(--surface-muted);
+    background: var(--color-surface-muted);
 }
 
 .order-info-item span {
     display: block;
     margin-bottom: 4px;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: .3px;
@@ -156,7 +151,7 @@
 .order-items {
     max-height: 240px;
     overflow-y: auto;
-    border-top: 1px solid var(--border);
+    border-top: 1px solid var(--color-border);
 }
 
 .order-item {
@@ -165,7 +160,7 @@
     justify-content: space-between;
     gap: 15px;
     padding: 12px 0;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .order-item-info {
@@ -181,7 +176,7 @@
 }
 
 .order-item-info span {
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     font-size: 12px;
 }
 
@@ -194,7 +189,7 @@
 
 .order-items-empty {
     padding: 20px 0;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     font-size: 13px;
     text-align: center;
 }

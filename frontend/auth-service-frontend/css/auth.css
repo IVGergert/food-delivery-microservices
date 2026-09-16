@@ -12,10 +12,10 @@ body {
 
 .auth-card {
     padding: 32px 30px;
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 16px;
-    box-shadow: var(--shadow-hover);
+    box-shadow: var(--shadow-md);
 }
 
 .brand {
@@ -24,7 +24,7 @@ body {
 }
 
 .brand h1 {
-    color: var(--text);
+    color: var(--color-text);
     font-size: 26px;
     font-weight: 750;
 }
@@ -35,7 +35,7 @@ body {
     margin-bottom: 20px;
     padding: 5px;
     border-radius: 12px;
-    background: var(--surface-muted);
+    background: var(--color-surface-muted);
 }
 
 .role-btn {
@@ -45,20 +45,20 @@ body {
     border: 0;
     border-radius: 9px;
     background: transparent;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     font-size: 13px;
     font-weight: 600;
     transition: .2s ease;
 }
 
 .role-btn:hover {
-    color: var(--text);
+    color: var(--color-text);
 }
 
 .role-btn.active {
     background: #ffffff;
-    color: var(--text);
-    box-shadow: var(--shadow);
+    color: var(--color-text);
+    box-shadow: var(--shadow-sm);
 }
 
 .tabs {
@@ -80,8 +80,8 @@ body {
 }
 
 .tab.active {
-    border-bottom-color: var(--primary);
-    color: var(--primary-dark);
+    border-bottom-color: var(--color-primary);
+    color: var(--color-primary-dark);
 }
 
 .auth-card .form-group {
@@ -90,7 +90,7 @@ body {
 
 .auth-card .form-group label {
     margin-bottom: 6px;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     font-size: 12px;
     font-weight: 600;
 }
@@ -114,7 +114,7 @@ body {
     padding: 12px;
     border: 1px solid #fde68a;
     border-radius: 9px;
-    background: var(--warning-light);
+    background: var(--color-warning-light);
     color: #92400e;
     font-size: 13px;
     line-height: 1.4;

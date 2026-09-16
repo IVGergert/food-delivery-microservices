@@ -1,7 +1,10 @@
 import {
-    renderUserInfo,
     logout
 } from "./auth.js";
+
+import {
+    renderUserInfo
+} from "../common/js/ui.js";
 
 import {
     loadMenu,
@@ -102,4 +105,8 @@ document.addEventListener("submit", event => {
         event.preventDefault();
         createOrder();
     }
+});
+
+document.addEventListener("profile-logout", () => {
+    logout();
 });

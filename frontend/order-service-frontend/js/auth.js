@@ -1,39 +1,19 @@
 import {
-    logoutRequest
-} from "./api.js";
+    postJson
+} from "../common/js/api-client.js";
 
-const CART_STORAGE_KEY = "cartItems";
-
-export function getUserEmail() {
-    return localStorage.getItem("userEmail") || "Пользователь";
-}
+import {
+    clearUserData
+} from "../common/js/storage.js";
 
 export async function logout() {
     try {
-        await logoutRequest();
-    } catch (error) {
-        console.error("Logout error:", error);
+        await postJson("/api/auth/logout", {}, false);
+    } catch {
+        // Local session cleanup must not depend on server response.
     } finally {
-        localStorage.removeItem("userId");
-        localStorage.removeItem("userEmail");
-        localStorage.removeItem("userRole");
-        localStorage.removeItem("userName");
-        localStorage.removeItem(CART_STORAGE_KEY);
-
+        clearUserData();
+        localStorage.removeItem("cartItems");
         window.location.href = "/";
-    }
-}
-
-export function renderUserInfo() {
-    const email = getUserEmail();
-    const emailElement = document.getElementById("userEmail");
-    const avatarElement = document.getElementById("userAvatar");
-
-    if (emailElement) {
-        emailElement.textContent = email;
-    }
-
-    if (avatarElement) {
-        avatarElement.textContent = email.charAt(0).toUpperCase();
     }
 }

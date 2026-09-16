@@ -1,4 +1,4 @@
-.delivery-page .header-actions {
+.header-actions {
     flex-wrap: wrap;
 }
 
@@ -8,15 +8,15 @@
     align-items: center;
     gap: 6px;
     padding: 0 14px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--color-border);
     border-radius: 10px;
-    background: var(--surface);
-    color: var(--text-secondary);
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
     font-size: 13px;
 }
 
 .stats-counter strong {
-    color: var(--primary-dark);
+    color: var(--color-primary-dark);
     font-size: 15px;
 }
 
@@ -35,19 +35,19 @@
 }
 
 .status-toggle-button.online {
-    background: var(--primary);
+    background: var(--color-primary);
 }
 
 .status-toggle-button.online:hover {
-    background: var(--primary-dark);
+    background: var(--color-primary-dark);
 }
 
 .status-toggle-button.offline {
-    background: var(--danger);
+    background: var(--color-danger);
 }
 
 .status-toggle-button.offline:hover {
-    background: var(--danger-dark);
+    background: var(--color-danger-dark);
 }
 
 .status-dot {
@@ -70,17 +70,17 @@
 }
 
 .courier-status-badge.online {
-    background: var(--primary-light);
+    background: var(--color-primary-light);
     color: #15803d;
 }
 
 .courier-status-badge.offline {
-    background: var(--danger-light);
+    background: var(--color-danger-light);
     color: #b91c1c;
 }
 
 @media (max-width: 760px) {
-    .delivery-page .header-actions {
+    .header-actions {
         width: 100%;
         justify-content: space-between;
     }

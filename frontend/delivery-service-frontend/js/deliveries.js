@@ -19,14 +19,20 @@ import {
 import {
     updateStatusUI,
     showSection,
-    showError,
-    showSuccess,
     showCurrentLoading,
     hideCurrentLoading,
-    getDeliveryStatusTitle,
+    getDeliveryStatusTitle
+} from "./ui.js";
+
+import {
+    showError,
+    showSuccess
+} from "../common/js/ui.js";
+
+import {
     formatDate,
     escapeHtml
-} from "./ui.js";
+} from "../common/js/utils.js";
 
 // Courier status
 

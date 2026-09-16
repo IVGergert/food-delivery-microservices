@@ -1,17 +1,17 @@
 import {
-    get,
-    getErrorMessage
-} from "./api.js";
+    requestJson
+} from "../common/js/api-client.js";
 
 import {
-    escapeHtml
-} from "./ui.js";
+    escapeHtml,
+    formatPrice,
+    getRussianItemWord,
+    buildImageUrl
+} from "../common/js/utils.js";
 
 import {
     addToCart
 } from "./cart.js";
-
-const MINIO_BASE_URL = "/menu-images/";
 
 const categories = [
     { value: "ALL", title: "Все", icon: "🍽️" },
@@ -29,13 +29,7 @@ export async function loadMenu() {
     showMenuLoading();
 
     try {
-        const response = await get("/api/menu");
-
-        if (!response.ok) {
-            throw new Error(await getErrorMessage(response));
-        }
-
-        const data = await response.json();
+        const data = await requestJson("/api/menu");
         menuItems = Array.isArray(data) ? data : [];
 
         hideMenuLoading();
@@ -82,7 +76,7 @@ export function renderCategories() {
     });
 }
 
-export function renderMenu() {
+function renderMenu() {
     const container = document.getElementById("menuGrid");
     const emptyState = document.getElementById("menuEmpty");
 
@@ -155,7 +149,7 @@ export function renderMenu() {
 }
 
 
-export function renderAllCategories(container) {
+function renderAllCategories(container) {
     categories
         .filter(category => category.value !== "ALL")
         .forEach(category => {
@@ -192,7 +186,7 @@ export function renderAllCategories(container) {
     }
 }
 
-export function renderEmptyCategory(container) {
+function renderEmptyCategory(container) {
     container.innerHTML = `
         <div class="empty-state">
             <div class="empty-state-icon">🍽️</div>
@@ -203,7 +197,7 @@ export function renderEmptyCategory(container) {
 }
 
 
-export function createMenuCard(item) {
+function createMenuCard(item) {
     const card = document.createElement("article");
     card.className = "menu-card";
 
@@ -322,56 +316,10 @@ function showMenuError(message) {
     `;
 }
 
-function buildImageUrl(imageUrl) {
-    if (!imageUrl) return "";
-
-    if (
-        imageUrl.startsWith("http://") ||
-        imageUrl.startsWith("https://")
-    ) {
-        return imageUrl;
-    }
-
-    return `${MINIO_BASE_URL}${imageUrl}`;
-}
-
-
 function getCategoryTitle(category) {
     const found = categories.find(
         item => item.value === category
     );
 
     return found ? found.title : category || "";
-}
-
-function getRussianItemWord(count) {
-    const lastTwo = count % 100;
-    const last = count % 10;
-
-    if (lastTwo >= 11 && lastTwo <= 14) {
-        return "позиций";
-    }
-
-    if (last === 1) {
-        return "позиция";
-    }
-
-    if (last >= 2 && last <= 4) {
-        return "позиции";
-    }
-
-    return "позиций";
-}
-
-function formatPrice(price) {
-    const value = Number(price);
-
-    if (!Number.isFinite(value)) {
-        return "0,00 ₽";
-    }
-
-    return `${value.toLocaleString("ru-RU", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    })} ₽`;
 }

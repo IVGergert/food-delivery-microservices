@@ -1,15 +1,20 @@
 import {
-    get, getErrorMessage
-} from "./api.js";
+    get
+} from "../common/js/api-client.js";
+
+import {
+    getErrorMessage
+} from "../common/error-handler.js";
 
 import {
     escapeHtml,
-    formatDate
-} from "./ui.js";
+    formatDate,
+    formatPrice
+} from "../common/js/utils.js";
 
 let selectedOrder = null;
 
-export function getOrderStatusTitle(status) {
+function getOrderStatusTitle(status) {
     const statuses = {
         PENDING_PAYMENT: "Ожидает оплаты",
         PAYMENT_FAILED: "Ошибка оплаты",
@@ -24,7 +29,7 @@ export function getOrderStatusTitle(status) {
     return statuses[status] || status || "Неизвестно";
 }
 
-export function getOrderStatusClass(status) {
+function getOrderStatusClass(status) {
     switch (status) {
         case "PAID":
         case "DELIVERED":
@@ -98,12 +103,9 @@ export async function loadMyOrders() {
     }
 }
 
-export function renderOrders(orders) {
-    const container =
-        document.getElementById("ordersList");
-
-    const empty =
-        document.getElementById("ordersEmpty");
+function renderOrders(orders) {
+    const container = document.getElementById("ordersList");
+    const empty = document.getElementById("ordersEmpty");
 
     if (!container) return;
 
@@ -122,18 +124,15 @@ export function renderOrders(orders) {
     }
 
     orders.forEach(order => {
-        container.appendChild(
-            createOrderCard(order)
-        );
+        container.appendChild(createOrderCard(order));
     });
 }
 
-export function createOrderCard(order) {
+function createOrderCard(order) {
     const card = document.createElement("article");
     card.className = "order-card";
 
-    const statusClass =
-        getOrderStatusClass(order.orderStatus);
+    const statusClass = getOrderStatusClass(order.orderStatus);
 
     card.innerHTML = `
         <div class="order-card-header">
@@ -146,11 +145,7 @@ export function createOrderCard(order) {
             </div>
 
             <span class="order-status ${statusClass}">
-                ${escapeHtml(
-        getOrderStatusTitle(
-            order.orderStatus
-        )
-    )}
+               ${escapeHtml(getOrderStatusTitle(order.orderStatus))}
             </span>
         </div>
 
@@ -158,14 +153,8 @@ export function createOrderCard(order) {
             <div class="info-col-address">
                 <span>Адрес</span>
 
-                <strong
-                    title="${escapeHtml(
-        order.address || ""
-    )}"
-                >
-                    ${escapeHtml(
-        order.address || "-"
-    )}
+                <strong title="${escapeHtml(order.address || "")}">
+                    ${escapeHtml(order.address || "-")}
                 </strong>
             </div>
 
@@ -180,18 +169,11 @@ export function createOrderCard(order) {
             <div>
                 <span>Сумма</span>
 
-                <strong>
-                    ${formatPrice(
-        order.totalAmount
-    )}
-                </strong>
+                <strong>${formatPrice(order.totalAmount)}</strong>
             </div>
 
             <div class="order-card-action">
-                <button
-                    type="button"
-                    class="secondary-button order-details-button"
-                >
+                <button type="button" class="secondary-button order-details-button"> 
                     Подробнее
                 </button>
             </div>
@@ -207,46 +189,26 @@ export function createOrderCard(order) {
     return card;
 }
 
-export function openOrderDetails(order) {
+function openOrderDetails(order) {
     selectedOrder = order;
 
-    const modal =
-        document.getElementById("orderModal");
+    const modal = document.getElementById("orderModal");
+    const title = document.getElementById("orderModalTitle");
+    const status = document.getElementById("orderModalStatus");
+    const address = document.getElementById("orderAddress");
+    const courier = document.getElementById("orderCourier");
+    const eta = document.getElementById("orderEta");
+    const total = document.getElementById("orderTotal");
 
     if (!modal) return;
-
-    const title =
-        document.getElementById("orderModalTitle");
-
-    const status =
-        document.getElementById("orderModalStatus");
-
-    const address =
-        document.getElementById("orderAddress");
-
-    const courier =
-        document.getElementById("orderCourier");
-
-    const eta =
-        document.getElementById("orderEta");
-
-    const total =
-        document.getElementById("orderTotal");
 
     if (title) {
         title.textContent = `Заказ №${order.id}`;
     }
 
     if (status) {
-        status.textContent =
-            getOrderStatusTitle(
-                order.orderStatus
-            );
-
-        status.className =
-            `order-status ${getOrderStatusClass(
-                order.orderStatus
-            )}`;
+        status.textContent = getOrderStatusTitle(order.orderStatus);
+        status.className = `order-status ${getOrderStatusClass(order.orderStatus)}`;
     }
 
     if (address) {
@@ -271,18 +233,14 @@ export function openOrderDetails(order) {
     }
 
     if (total) {
-        total.textContent =
-            formatPrice(order.totalAmount);
+        total.textContent = formatPrice(order.totalAmount);
     }
 
-    renderOrderDetailsItems(
-        order.items || []
-    );
-
+    renderOrderDetailsItems(order.items || []);
     modal.classList.remove("hidden");
 }
 
-export function renderOrderDetailsItems(items) {
+function renderOrderDetailsItems(items) {
     const container =
         document.getElementById("orderItems");
 
@@ -301,8 +259,7 @@ export function renderOrderDetailsItems(items) {
     }
 
     items.forEach(item => {
-        const element =
-            document.createElement("div");
+        const element = document.createElement("div");
 
         element.className = "order-item";
 
@@ -311,20 +268,14 @@ export function renderOrderDetailsItems(items) {
             item.price ||
             0;
 
-        const qty =
-            item.quantity || 1;
+        const qty = item.quantity || 1;
 
-        const itemTotal =
-            Number(price) * Number(qty);
+        const itemTotal = Number(price) * Number(qty);
 
         element.innerHTML = `
             <div class="order-item-info">
                 <strong>
-                    ${escapeHtml(
-            item.itemName ||
-            item.name ||
-            `Товар #${item.itemId}`
-        )}
+                    ${escapeHtml(item.itemName || item.name || `Товар #${item.itemId}`)}
                 </strong>
 
                 <span>
@@ -347,18 +298,4 @@ export function closeOrderDetails() {
         ?.classList.add("hidden");
 
     selectedOrder = null;
-}
-
-
-function formatPrice(price) {
-    const value = Number(price);
-
-    if (!Number.isFinite(value)) {
-        return "0,00 ₽";
-    }
-
-    return `${value.toLocaleString("ru-RU", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    })} ₽`;
 }

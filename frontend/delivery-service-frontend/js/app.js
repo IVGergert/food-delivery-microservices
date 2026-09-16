@@ -4,9 +4,12 @@ import {
 } from "./state.js";
 
 import {
-    renderUserInfo,
     showSection
 } from "./ui.js";
+
+import {
+    renderUserInfo
+} from "../common/js/ui.js";
 
 import {
     fetchCourierStatus,
@@ -128,14 +131,6 @@ document.addEventListener(
         }
 
 
-        // Go online from waiting
-
-        if (event.target.closest("#goOnlineFromWaitingButton")) {
-            await goOnline();
-            return;
-        }
-
-
         // Refresh waiting
 
         if (event.target.closest("#refreshWaitingButton")) {
@@ -154,16 +149,20 @@ document.addEventListener(
 
         // Logout
 
-        const logoutButton = event.target.closest("#logoutButton, #profileLogoutButton");
-
-        if (logoutButton) {
+        if (event.target.closest("#logoutButton")) {
             const canLogout = await validateLogout();
 
             if (canLogout) {
                 await logout();
             }
-
-            return;
         }
     }
 );
+
+document.addEventListener("profile-logout", async () => {
+    const canLogout = await validateLogout();
+
+    if (canLogout) {
+        await logout();
+    }
+});

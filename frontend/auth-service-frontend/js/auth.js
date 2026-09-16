@@ -5,12 +5,16 @@ import {
 
 import {
     saveUserData
-} from "./state.js";
+} from "../common/js/storage.js";
 
 import {
     showAlert,
     hideAlert
-} from "./ui.js";
+} from "../common/js/ui.js";
+
+import {
+    passwordsMatch
+} from "../common/js/validation.js";
 
 let selectedRole = "CUSTOMER";
 
@@ -151,7 +155,7 @@ export async function onRegister(event) {
 
     const confirmPassword = document.getElementById("regConfirmPassword").value;
 
-    if (password !== confirmPassword) {
+    if (!passwordsMatch(password, confirmPassword)) {
         showAlert("Пароли не совпадают");
         return;
     }

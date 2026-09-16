@@ -1,19 +1,31 @@
 import {
-    post, getErrorMessage
-} from "./api.js";
+    post
+} from "../common/js/api-client.js";
+
+import {
+    getErrorMessage
+} from "../common/error-handler.js";
 
 import {
     showError,
     showSuccess,
-    escapeHtml
-} from "./ui.js";
+    setButtonLoading
+} from "../common/js/ui.js";
+
+import {
+    escapeHtml,
+    formatPrice,
+    buildImageUrl,
+    getRussianItemWord
+} from "../common/js/utils.js";
 
 import {
     loadMyOrders
 } from "./orders.js";
 
-const MINIO_BASE_URL = "/menu-images/";
-const CART_STORAGE_KEY = "cartItems";
+import {
+    CART_STORAGE_KEY
+} from "../common/js/storage.js";
 
 let cartItems = [];
 
@@ -33,7 +45,7 @@ export function loadCart() {
     }
 }
 
-export function saveCart() {
+function saveCart() {
     localStorage.setItem(
         CART_STORAGE_KEY,
         JSON.stringify(cartItems)
@@ -65,7 +77,7 @@ export function addToCart(item) {
     showSuccess(`${item.name} добавлен в корзину`);
 }
 
-export function removeFromCart(itemId) {
+function removeFromCart(itemId) {
     cartItems = cartItems.filter(
         item => item.itemId !== itemId
     );
@@ -76,7 +88,7 @@ export function removeFromCart(itemId) {
     renderCart();
 }
 
-export function decreaseQuantity(itemId) {
+function decreaseQuantity(itemId) {
     const item = cartItems.find(
         cartItem => cartItem.itemId === itemId
     );
@@ -96,7 +108,7 @@ export function decreaseQuantity(itemId) {
     renderCart();
 }
 
-export function increaseQuantity(itemId) {
+function increaseQuantity(itemId) {
     const item = cartItems.find(
         cartItem => cartItem.itemId === itemId
     );
@@ -111,14 +123,14 @@ export function increaseQuantity(itemId) {
     renderCart();
 }
 
-export function getCartCount() {
+function getCartCount() {
     return cartItems.reduce(
         (total, item) => total + item.quantity,
         0
     );
 }
 
-export function getCartTotal() {
+function getCartTotal() {
     return cartItems.reduce(
         (total, item) =>
             total + Number(item.price) * item.quantity,
@@ -211,7 +223,7 @@ export function renderCart() {
     updateCartItemsCount();
 }
 
-export function createCartItem(item) {
+function createCartItem(item) {
     const element = document.createElement("div");
     element.className = "cart-item";
 
@@ -320,7 +332,7 @@ export function openCheckout() {
     modal.classList.remove("hidden");
 }
 
-export function renderCheckoutItems() {
+function renderCheckoutItems() {
     const container = document.getElementById("checkoutItems");
 
     if (!container) return;
@@ -444,9 +456,7 @@ export async function createOrder() {
         );
 
         if (!response.ok) {
-            throw new Error(
-                await getErrorMessage(response)
-            );
+            throw new Error(await getErrorMessage(response));
         }
 
         const order = await response.json();
@@ -459,9 +469,7 @@ export async function createOrder() {
         );
 
         if (!paymentResponse.ok) {
-            throw new Error(
-                await getErrorMessage(paymentResponse)
-            );
+            throw new Error(await getErrorMessage(paymentResponse));
         }
 
         const paidOrder = await paymentResponse.json();
@@ -536,69 +544,4 @@ function clearCheckoutErrors() {
         fieldError.textContent = "";
         fieldError.classList.add("hidden");
     }
-}
-
-function setButtonLoading(button, loading) {
-    if (!button) return;
-
-    if (loading) {
-        if (!button.dataset.originalText) {
-            button.dataset.originalText = button.textContent;
-        }
-
-        button.textContent = "Обработка...";
-        button.disabled = true;
-
-    } else {
-        button.textContent =
-            button.dataset.originalText ||
-            button.textContent;
-
-        button.disabled = false;
-    }
-}
-
-function formatPrice(price) {
-    const value = Number(price);
-
-    if (!Number.isFinite(value)) {
-        return "0,00 ₽";
-    }
-
-    return `${value.toLocaleString("ru-RU", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    })} ₽`;
-}
-
-function buildImageUrl(imageUrl) {
-    if (!imageUrl) return "";
-
-    if (
-        imageUrl.startsWith("http://") ||
-        imageUrl.startsWith("https://")
-    ) {
-        return imageUrl;
-    }
-
-    return `${MINIO_BASE_URL}${imageUrl}`;
-}
-
-function getRussianItemWord(count) {
-    const lastTwo = count % 100;
-    const last = count % 10;
-
-    if (lastTwo >= 11 && lastTwo <= 14) {
-        return "позиций";
-    }
-
-    if (last === 1) {
-        return "позиция";
-    }
-
-    if (last >= 2 && last <= 4) {
-        return "позиции";
-    }
-
-    return "позиций";
 }

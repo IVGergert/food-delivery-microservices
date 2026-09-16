@@ -1,6 +1,6 @@
 import {
     showProfile
-} from "./profile.js";
+} from "../common/js/profile.js";
 
 import {
     loadMyOrders
