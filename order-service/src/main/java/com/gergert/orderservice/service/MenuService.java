@@ -1,10 +1,10 @@
 package com.gergert.orderservice.service;
 
-import com.gergert.orderservice.entity.MenuItem;
+import com.gergert.orderservice.dto.MenuItemDto;
 
 import java.util.List;
 
 public interface MenuService {
-    List<MenuItem> getAllItems();
-    MenuItem getItemById(Long id);
+    List<MenuItemDto> getAllItems();
+    MenuItemDto getItemById(Long id);
 }

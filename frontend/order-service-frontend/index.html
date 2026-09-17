@@ -271,6 +271,23 @@
     </div>
 </div>
 
+<div class="modal-overlay hidden" id="cancelOrderModal">
+    <div class="modal cancel-order-modal">
+        <div class="modal-header">
+            <div>
+                <h2>Отменить заказ?</h2>
+                <p id="cancelOrderMessage">Вы действительно хотите отменить заказ?</p>
+            </div>
+            <button class="close-button" id="closeCancelOrderButton" type="button">×</button>
+        </div>
+
+        <div class="modal-footer">
+            <button class="secondary-button" id="closeCancelOrderButtonSecondary" type="button">Нет, оставить</button>
+            <button class="secondary-button" id="confirmCancelOrderButton" type="button">Да, отменить</button>
+        </div>
+    </div>
+</div>
+
 <script type="module" src="/customer/js/app.js"></script>
 </body>
 </html>

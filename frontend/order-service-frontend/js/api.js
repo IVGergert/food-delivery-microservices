@@ -68,3 +68,12 @@ export function payOrder(orderId, paymentMethod) {
         jsonOptions("POST", { paymentMethod })
     );
 }
+
+export function cancelOrder(orderId) {
+    return requestJson(
+        `/api/orders/${orderId}/cancel`,
+        {
+            method: "POST"
+        }
+    );
+}

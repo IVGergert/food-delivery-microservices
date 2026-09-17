@@ -1,5 +1,6 @@
 package com.gergert.deliveryservice.service;
 
+import com.gergert.common.dto.kafka.OrderCancelledEventDto;
 import com.gergert.common.dto.kafka.OrderPaidEventDto;
 import com.gergert.deliveryservice.dto.CourierStatisticsResponseDto;
 import com.gergert.deliveryservice.dto.DeliveryResponseDto;
@@ -9,6 +10,8 @@ import java.util.Optional;
 
 public interface DeliveryService {
     void createDelivery(OrderPaidEventDto eventDto);
+    void cancelDelivery(OrderCancelledEventDto eventDto);
+
     DeliveryResponseDto pickUpOrder(Long orderId, Long courierUserId);
     DeliveryResponseDto completeDelivery(Long orderId, Long courierUserId);
     Optional<DeliveryResponseDto> getCurrentDeliveryByCourierUserId(Long courierUserId);

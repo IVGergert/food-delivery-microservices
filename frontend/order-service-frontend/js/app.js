@@ -19,7 +19,9 @@ import {
 
 import {
     loadMyOrders,
-    closeOrderDetails
+    closeOrderDetails,
+    closeCancelOrderConfirmation,
+    confirmOrderCancellation
 } from "./orders.js";
 
 
@@ -113,6 +115,7 @@ document.addEventListener("keydown", event => {
     closeCart();
     closeCheckout();
     closeOrderDetails();
+    closeCancelOrderConfirmation();
     document.dispatchEvent(new CustomEvent("close-modals"));
 });
 
@@ -184,6 +187,17 @@ document.addEventListener("click", async event => {
 
     if (event.target.closest("#closeOrderButton")) {
         closeOrderDetails();
+        return;
+    }
+
+    if (event.target.closest("#closeCancelOrderButton")
+        || event.target.closest("#closeCancelOrderButtonSecondary")) {
+        closeCancelOrderConfirmation();
+        return;
+    }
+
+    if (event.target.closest("#confirmCancelOrderButton")) {
+        await confirmOrderCancellation();
     }
 });
 

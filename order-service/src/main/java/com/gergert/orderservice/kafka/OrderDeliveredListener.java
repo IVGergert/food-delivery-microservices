@@ -31,7 +31,6 @@ public class OrderDeliveredListener {
             return;
         }
 
-        // МЕНЯЕМ СТАТУС В ORDER SERVICE!
         order.setOrderStatus(OrderStatus.DELIVERED);
         orderRepository.save(order);
 

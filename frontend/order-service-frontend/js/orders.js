@@ -1,4 +1,5 @@
 import {
+    cancelOrder,
     getMyOrders
 } from "./api.js";
 
@@ -10,6 +11,14 @@ import {
 import {
     formatPrice
 } from "./utils.js";
+
+import {
+    showError,
+    showSuccess
+} from "../../common/js/notifications.js";
+
+let orderToCancel = null;
+let isCancellingOrder = false;
 
 
 function getOrderStatusTitle(status) {
@@ -25,6 +34,11 @@ function getOrderStatusTitle(status) {
     };
 
     return statuses[status] || status || "Неизвестно";
+}
+
+export function isOrderCancellable(status) {
+    return status === "PENDING_PAYMENT"
+        || status === "CASH_ON_DELIVERY";
 }
 
 function getOrderStatusClass(status) {
@@ -162,10 +176,15 @@ function createOrderCard(order) {
                 <strong>${formatPrice(order.totalAmount)}</strong>
             </div>
 
-            <div class="order-card-action">
-                <button type="button" class="secondary-button order-details-button"> 
+            <div class="order-card-action order-card-actions">
+                <button type="button" class="secondary-button order-details-button">
                     Подробнее
                 </button>
+                ${isOrderCancellable(order.orderStatus) ? `
+                    <button type="button" class="cancel-order-button">
+                        Отменить
+                    </button>
+                ` : ""}
             </div>
         </div>
     `;
@@ -176,7 +195,77 @@ function createOrderCard(order) {
             openOrderDetails(order);
         });
 
+    const cancelButton = card.querySelector(".cancel-order-button");
+
+    if (cancelButton) {
+        cancelButton.addEventListener("click", () => {
+            openCancelOrderConfirmation(order);
+        });
+    }
+
     return card;
+}
+
+function openCancelOrderConfirmation(order) {
+    orderToCancel = order;
+
+    const modal = document.getElementById("cancelOrderModal");
+    const message = document.getElementById("cancelOrderMessage");
+
+    if (!modal || !message) {
+        return;
+    }
+
+    message.textContent = `Вы действительно хотите отменить заказ №${order.id}?`;
+    modal.classList.remove("hidden");
+}
+
+export function closeCancelOrderConfirmation() {
+    if (isCancellingOrder) {
+        return;
+    }
+
+    hideCancelOrderModal();
+}
+
+function hideCancelOrderModal() {
+    orderToCancel = null;
+    document
+        .getElementById("cancelOrderModal")
+        ?.classList.add("hidden");
+}
+
+export async function confirmOrderCancellation() {
+    if (!orderToCancel || isCancellingOrder) {
+        return;
+    }
+
+    const orderId = orderToCancel.id;
+    const button = document.getElementById("confirmCancelOrderButton");
+
+    isCancellingOrder = true;
+
+    if (button) {
+        button.disabled = true;
+        button.textContent = "Отмена...";
+    }
+
+    try {
+        await cancelOrder(orderId);
+
+        hideCancelOrderModal();
+        showSuccess(`Заказ №${orderId} отменён`);
+        await loadMyOrders();
+    } catch (error) {
+        showError(error.message);
+    } finally {
+        isCancellingOrder = false;
+
+        if (button) {
+            button.disabled = false;
+            button.textContent = "Да, отменить";
+        }
+    }
 }
 
 function openOrderDetails(order) {

@@ -1,5 +1,7 @@
 package com.gergert.orderservice.service.impl;
 
+import com.gergert.orderservice.dto.MenuItemDto;
+import com.gergert.orderservice.dto.MenuMapper;
 import com.gergert.orderservice.entity.MenuItem;
 import com.gergert.orderservice.exception.MenuItemNotFoundException;
 import com.gergert.orderservice.repository.MenuItemRepository;
@@ -15,21 +17,31 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MenuServiceImpl implements MenuService {
     private final MenuItemRepository menuItemRepository;
+    private final MenuMapper menuMapper;
 
     @Override
     @Cacheable("menu")
     @Transactional(readOnly = true)
-    public List<MenuItem> getAllItems() {
-        return menuItemRepository.findAll();
+    public List<MenuItemDto> getAllItems() {
+        List<MenuItem> menuItems = menuItemRepository.findAll();
+
+        return menuItems.stream()
+                .map(menuMapper::toMenuDto)
+                .toList();
     }
 
     @Override
     @Cacheable(value = "menu", key = "#id")
     @Transactional(readOnly = true)
-    public MenuItem getItemById(Long id) {
-        return menuItemRepository.findById(id)
-                .orElseThrow(() -> new MenuItemNotFoundException(
-                        "Menu item with id `%s` not found".formatted(id))
+    public MenuItemDto getItemById(Long id) {
+        MenuItem menuItem = menuItemRepository.findById(id)
+                .orElseThrow(() ->
+                        new MenuItemNotFoundException(
+                                "Menu item with id `%s` not found"
+                                        .formatted(id)
+                        )
                 );
+
+        return menuMapper.toMenuDto(menuItem);
     }
 }

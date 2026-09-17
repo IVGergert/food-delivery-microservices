@@ -4,5 +4,6 @@ public enum DeliveryStatus {
     WAITING_FOR_COURIER,
     COURIER_ASSIGNED,
     PICKED_UP,
-    DELIVERED
+    DELIVERED,
+    CANCELLED
 }

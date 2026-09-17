@@ -4,6 +4,7 @@ import com.gergert.orderservice.dto.MenuItemDto;
 import com.gergert.orderservice.dto.MenuMapper;
 import com.gergert.orderservice.service.MenuService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,23 +17,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MenuController {
     private final MenuService menuService;
-    private final MenuMapper menuMapper;
 
     @GetMapping
-    public List<MenuItemDto> getAll() {
-
-        return menuService.getAllItems()
-                .stream()
-                .map(menuMapper::toMenuDto)
-                .toList();
+    public ResponseEntity<List<MenuItemDto>> getAll() {
+        return ResponseEntity.ok(menuService.getAllItems());
     }
 
     @GetMapping("/{id}")
-    public MenuItemDto getById(@PathVariable Long id) {
-
-        var menuItem = menuService.getItemById(id);
-
-        return menuMapper.toMenuDto(menuItem);
+    public ResponseEntity<MenuItemDto> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(menuService.getItemById(id));
     }
 
 }

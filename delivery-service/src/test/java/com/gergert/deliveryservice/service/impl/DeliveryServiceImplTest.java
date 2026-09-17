@@ -2,6 +2,7 @@ package com.gergert.deliveryservice.service.impl;
 
 import com.gergert.common.dto.kafka.DeliveryAssignedEventDto;
 import com.gergert.common.dto.kafka.OrderDeliveredEventDto;
+import com.gergert.common.dto.kafka.OrderCancelledEventDto;
 import com.gergert.common.dto.kafka.OrderPaidEventDto;
 import com.gergert.common.dto.kafka.OrderPickedUpEventDto;
 import com.gergert.deliveryservice.dto.CourierStatisticsResponseDto;
@@ -163,6 +164,32 @@ class DeliveryServiceImplTest {
         );
 
         service.createDelivery(event);
+
+        verify(deliveryRepository, never())
+                .save(any(Delivery.class));
+    }
+
+    // cancelDelivery()
+
+    @Test
+    void cancelDelivery_shouldMarkExistingDeliveryAsCancelled() {
+        when(deliveryRepository.findByOrderId(50L))
+                .thenReturn(Optional.of(delivery));
+
+        service.cancelDelivery(new OrderCancelledEventDto(50L));
+
+        assertThat(delivery.getDeliveryStatus())
+                .isEqualTo(DeliveryStatus.CANCELLED);
+
+        verify(deliveryRepository).save(delivery);
+    }
+
+    @Test
+    void cancelDelivery_shouldDoNothingWhenDeliveryDoesNotExist() {
+        when(deliveryRepository.findByOrderId(50L))
+                .thenReturn(Optional.empty());
+
+        service.cancelDelivery(new OrderCancelledEventDto(50L));
 
         verify(deliveryRepository, never())
                 .save(any(Delivery.class));

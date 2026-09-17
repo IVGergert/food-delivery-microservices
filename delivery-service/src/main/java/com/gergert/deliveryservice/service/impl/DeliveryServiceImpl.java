@@ -1,9 +1,6 @@
 package com.gergert.deliveryservice.service.impl;
 
-import com.gergert.common.dto.kafka.DeliveryAssignedEventDto;
-import com.gergert.common.dto.kafka.OrderDeliveredEventDto;
-import com.gergert.common.dto.kafka.OrderPaidEventDto;
-import com.gergert.common.dto.kafka.OrderPickedUpEventDto;
+import com.gergert.common.dto.kafka.*;
 import com.gergert.deliveryservice.dto.CourierStatisticsResponseDto;
 import com.gergert.deliveryservice.dto.DeliveryMapper;
 import com.gergert.deliveryservice.dto.DeliveryResponseDto;
@@ -32,6 +29,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class DeliveryServiceImpl implements DeliveryService {
     private final DeliveryRepository deliveryRepository;
     private final CourierRepository courierRepository;
+
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     private final DeliveryMapper deliveryMapper;
@@ -64,6 +62,21 @@ public class DeliveryServiceImpl implements DeliveryService {
         Delivery saved = deliveryRepository.save(delivery);
 
         log.info("Delivery created for order {}", saved.getOrderId());
+    }
+
+    @Override
+    @Transactional
+    public void cancelDelivery(OrderCancelledEventDto eventDto) {
+        Long orderId = eventDto.orderId();
+
+        deliveryRepository.findByOrderId(orderId)
+                .ifPresent(delivery -> {
+                    delivery.setDeliveryStatus(DeliveryStatus.CANCELLED);
+                    deliveryRepository.save(delivery);
+
+                    log.info(" Delivery for order {} cancelled", orderId);
+                });
+
     }
 
     @Override

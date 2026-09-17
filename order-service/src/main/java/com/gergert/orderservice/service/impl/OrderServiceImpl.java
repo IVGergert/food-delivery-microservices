@@ -2,10 +2,12 @@ package com.gergert.orderservice.service.impl;
 
 import com.gergert.common.dto.OrderPaymentRequestDto;
 import com.gergert.common.dto.CreatePaymentRequestDto;
+import com.gergert.common.dto.kafka.OrderCancelledEventDto;
 import com.gergert.common.enums.PaymentMethod;
 import com.gergert.common.enums.PaymentStatus;
 import com.gergert.orderservice.client.PaymentHttpClient;
 import com.gergert.orderservice.dto.CreateOrderRequestDto;
+import com.gergert.orderservice.dto.OrderDto;
 import com.gergert.orderservice.dto.OrderMapper;
 import com.gergert.common.dto.kafka.OrderPaidEventDto;
 import com.gergert.orderservice.entity.MenuItem;
@@ -36,6 +38,9 @@ public class OrderServiceImpl implements OrderService {
     @Value("${kafka.topics.order-paid-events}")
     private String orderPaidEventTopic;
 
+    @Value("${kafka.topics.order-cancelled-events}")
+    private String orderCancelledEventTopic;
+
     private final OrderRepository orderRepository;
     private final MenuItemRepository menuItemRepository;
 
@@ -46,23 +51,28 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public Order processPayment(Long id, OrderPaymentRequestDto requestDto, Long customerId){
+    public OrderDto processPayment(Long id,
+                                   OrderPaymentRequestDto requestDto,
+                                   Long customerId) {
+
         var order = getOrderOrThrow(id);
 
         if (!order.getCustomerId().equals(customerId)) {
             throw new OrderAccessDeniedException("You can only pay for your own orders");
         }
 
-        if (!order.getOrderStatus().equals(OrderStatus.PENDING_PAYMENT)){
+        if (!order.getOrderStatus().equals(OrderStatus.PENDING_PAYMENT)) {
             throw new InvalidOrderStatusException("Order must be in orderStatus PENDING_PAYMENT");
-
         }
 
         if (requestDto.paymentMethod() == PaymentMethod.CASH) {
             order.setOrderStatus(OrderStatus.CASH_ON_DELIVERY);
+
             Order savedOrder = orderRepository.save(order);
+
             sendOrderReadyForDeliveryEvent(savedOrder);
-            return savedOrder;
+
+            return orderMapper.toOrderDto(savedOrder);
         }
 
         var response = paymentHttpClient.createPayment(
@@ -70,25 +80,29 @@ public class OrderServiceImpl implements OrderService {
                         .orderId(id)
                         .paymentMethod(requestDto.paymentMethod())
                         .amount(order.getTotalAmount())
-                        .build());
+                        .build()
+        );
 
         var status = PaymentStatus.PAYMENT_SUCCEEDED.equals(response.paymentStatus())
                 ? OrderStatus.PAID
                 : OrderStatus.PAYMENT_FAILED;
 
         order.setOrderStatus(status);
+
         Order savedOrder = orderRepository.save(order);
 
-        if (status == OrderStatus.PAID){
+        if (status == OrderStatus.PAID) {
             sendOrderReadyForDeliveryEvent(savedOrder);
         }
 
-        return savedOrder;
+        return orderMapper.toOrderDto(savedOrder);
     }
 
     @Transactional
     @Override
-    public Order create(CreateOrderRequestDto request, Long customerId) {
+    public OrderDto createOrder(CreateOrderRequestDto request,
+                                Long customerId) {
+
         var order = orderMapper.toEntity(request);
 
         order.setCustomerId(customerId);
@@ -97,29 +111,58 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderStatus(OrderStatus.PENDING_PAYMENT);
 
         Order savedOrder = orderRepository.save(order);
+
         log.info("Order was created with id={}", savedOrder.getId());
 
-        return savedOrder;
+        return orderMapper.toOrderDto(savedOrder);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Order getOrderOrThrow(Long id) {
-        var orderItemOptional = orderRepository.findById(id);
-        return orderItemOptional.orElseThrow(() ->
-                new OrderNotFoundException("Entity with id `%s` not found".formatted(id)));
+    public List<OrderDto> getAllOrdersByUserId(Long customerId) {
+        var orders = orderRepository.findAllByCustomerId(customerId);
+
+        return orderMapper.toOrderDto(orders);
     }
 
+    @Transactional
     @Override
-    @Transactional(readOnly = true)
-    public List<Order> getAllOrdersByUserId(Long customerId) {
-        return orderRepository.findAllByCustomerId(customerId);
+    public OrderDto cancelOrder(Long id,
+                                Long customerId) {
+
+        var order = getOrderOrThrow(id);
+
+        if (!order.getCustomerId().equals(customerId)) {
+            throw new OrderAccessDeniedException("You can only cancel your own orders");
+        }
+
+        if (order.getOrderStatus() != OrderStatus.PENDING_PAYMENT
+                && order.getOrderStatus() != OrderStatus.CASH_ON_DELIVERY) {
+
+            throw new InvalidOrderStatusException("Order cannot be cancelled in current status");
+        }
+
+        order.setOrderStatus(OrderStatus.CANCELLED);
+
+        var savedOrder = orderRepository.save(order);
+
+        sendOrderCancelledEvent(savedOrder);
+
+        log.info("Order {} cancelled by customer {}", savedOrder.getId(), customerId);
+
+        return orderMapper.toOrderDto(savedOrder);
+    }
+
+    private Order getOrderOrThrow(Long id) {
+        return orderRepository.findById(id)
+                .orElseThrow(() ->
+                        new OrderNotFoundException("Entity with id `%s` not found".formatted(id))
+                );
     }
 
     private void sendOrderReadyForDeliveryEvent(Order order) {
 
-        OrderPaidEventDto event =
-                OrderPaidEventDto.builder()
+        OrderPaidEventDto event = OrderPaidEventDto.builder()
                         .orderId(order.getId())
                         .address(order.getAddress())
                         .amount(order.getTotalAmount())
@@ -134,16 +177,32 @@ public class OrderServiceImpl implements OrderService {
         );
     }
 
-    private void calculatePricingForOrder(Order order){
+    private void sendOrderCancelledEvent(Order order) {
+        OrderCancelledEventDto event = new OrderCancelledEventDto(order.getId());
+
+        log.info("Sending OrderCancelledEventTopic for orderId={}", order.getId());
+
+        kafkaTemplate.send(
+                orderCancelledEventTopic,
+                order.getId().toString(),
+                event
+        );
+    }
+
+    private void calculatePricingForOrder(Order order) {
+
         BigDecimal totalPrice = BigDecimal.ZERO;
 
         for (OrderItem orderItem : order.getItems()) {
+
             MenuItem menuItem = menuItemRepository
                     .findById(orderItem.getItemId())
-                    .orElseThrow(() -> new MenuItemNotFoundException(
-                            "Menu item with id `%s` not found".formatted(orderItem.getItemId())
-                    )
-            );
+                    .orElseThrow(() ->
+                            new MenuItemNotFoundException(
+                                    "Menu item with id `%s` not found"
+                                            .formatted(orderItem.getItemId())
+                            )
+                    );
 
             orderItem.setItemName(menuItem.getName());
             orderItem.setPriceAtPurchase(menuItem.getPrice());
@@ -151,9 +210,11 @@ public class OrderServiceImpl implements OrderService {
 
             BigDecimal itemTotal = menuItem
                     .getPrice()
-                    .multiply(BigDecimal.valueOf(orderItem.getQuantity()
-                    )
-            );
+                    .multiply(
+                            BigDecimal.valueOf(
+                                    orderItem.getQuantity()
+                            )
+                    );
 
             totalPrice = totalPrice.add(itemTotal);
         }

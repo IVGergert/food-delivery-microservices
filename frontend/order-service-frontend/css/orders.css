@@ -54,9 +54,9 @@
 
 .order-card-info {
     display: grid;
-    grid-template-columns: minmax(220px, 2.2fr) 1fr 1.2fr auto;
+    grid-template-columns: minmax(280px, 2.4fr) minmax(80px, .6fr) minmax(120px, .8fr) minmax(max-content, auto);
     align-items: center;
-    gap: 20px;
+    gap: 16px;
     padding-top: 15px;
 }
 
@@ -85,6 +85,20 @@
 .order-card-action {
     display: flex;
     justify-content: flex-end;
+    min-width: max-content;
+}
+
+.order-card-actions {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.order-card-actions button {
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .order-modal {
@@ -199,4 +213,51 @@
     color: var(--color-text-secondary);
     font-size: 13px;
     text-align: center;
+}
+
+.cancel-order-button {
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--color-danger-light);
+    border-radius: var(--radius-sm);
+    background: var(--color-danger-light);
+    color: var(--color-danger-text);
+    font-size: 13px;
+    font-weight: 650;
+    transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+}
+
+.cancel-order-button:hover:not(:disabled) {
+    border-color: var(--color-danger);
+    background: #fee2e2;
+    color: var(--color-danger-dark);
+}
+
+.cancel-confirm-button {
+    min-height: 40px;
+    padding: 0 16px;
+    border: 1px solid var(--color-danger);
+    border-radius: var(--radius-sm);
+    background: var(--color-danger);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 650;
+    transition: background-color .2s ease, border-color .2s ease, transform .2s ease;
+}
+
+.cancel-confirm-button:hover:not(:disabled) {
+    border-color: var(--color-danger-dark);
+    background: var(--color-danger-dark);
+}
+
+.cancel-confirm-button:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.cancel-order-modal {
+    max-width: 460px;
+}
+
+.orders-list {
+    padding-bottom: 110px;
 }
