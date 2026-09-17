@@ -1,33 +1,23 @@
 import {
-    loginRequest,
-    registerRequest
+    login,
+    register
 } from "./api.js";
 
 import {
-    saveUserData
-} from "../common/js/storage.js";
-
-import {
-    showAlert,
+    showError,
     hideAlert
-} from "../common/js/ui.js";
-
-import {
-    passwordsMatch
-} from "../common/js/validation.js";
+} from "../../common/js/notifications.js";
 
 let selectedRole = "CUSTOMER";
 
-export function selectRole(type) {
+function selectRole(type) {
     const btnCustomer = document.getElementById("btnCustomer");
     const btnCourier = document.getElementById("btnCourier");
     const btnAdmin = document.getElementById("btnAdmin");
-
     const registerTab = document.getElementById("registerTab");
     const roleNotice = document.getElementById("roleNotice");
 
     selectedRole = type;
-
     hideAlert();
 
     btnCustomer.classList.remove("active");
@@ -37,92 +27,60 @@ export function selectRole(type) {
     if (type === "CUSTOMER") {
         btnCustomer.classList.add("active");
         registerTab.classList.remove("hidden");
-
         roleNotice.classList.add("hidden");
-
         return;
     }
 
     if (type === "COURIER") {
         btnCourier.classList.add("active");
         registerTab.classList.add("hidden");
-
         roleNotice.textContent = "Аккаунты курьеров выдаются администратором.";
         roleNotice.classList.remove("hidden");
-
         switchTab("login");
         return;
     }
 
-    if (type === "ADMIN") {
-        btnAdmin.classList.add("active");
-        registerTab.classList.add("hidden");
-
-        roleNotice.textContent = "Вход доступен только для администратора.";
-        roleNotice.classList.remove("hidden");
-
-        switchTab("login");
-    }
+    btnAdmin.classList.add("active");
+    registerTab.classList.add("hidden");
+    roleNotice.textContent = "Вход доступен только для администратора.";
+    roleNotice.classList.remove("hidden");
+    switchTab("login");
 }
 
-
-export function switchTab(tab) {
+function switchTab(tab) {
     const loginForm = document.getElementById("loginForm");
     const registerForm = document.getElementById("registerForm");
-
     const loginTab = document.getElementById("loginTab");
     const registerTab = document.getElementById("registerTab");
 
     hideAlert();
 
-    if (tab === "login") {
-        loginForm.classList.remove("hidden");
-        registerForm.classList.add("hidden");
+    const loginActive = tab === "login";
 
-        loginTab.classList.add("active");
-        registerTab.classList.remove("active");
-
-        return;
-    }
-
-    loginForm.classList.add("hidden");
-    registerForm.classList.remove("hidden");
-
-    loginTab.classList.remove("active");
-    registerTab.classList.add("active");
+    loginForm.classList.toggle("hidden", !loginActive);
+    registerForm.classList.toggle("hidden", loginActive);
+    loginTab.classList.toggle("active", loginActive);
+    registerTab.classList.toggle("active", !loginActive);
 }
 
-
-export async function onLogin(event) {
+async function onLogin(event) {
     event.preventDefault();
-
     hideAlert();
 
-    const email = document
-            .getElementById("loginEmail")
-            .value
-            .trim();
-
-    const password = document
-            .getElementById("loginPassword")
-            .value;
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
 
     try {
-        const data = await loginRequest(email, password);
+        const data = await login({
+            email,
+            password
+        });
 
-        let expectedRole;
-
-        switch (selectedRole) {
-            case "CUSTOMER":
-                expectedRole = "ROLE_CUSTOMER";
-                break;
-            case "COURIER":
-                expectedRole = "ROLE_COURIER";
-                break;
-            case "ADMIN":
-                expectedRole = "ROLE_ADMIN";
-                break;
-        }
+        const expectedRole = {
+            CUSTOMER: "ROLE_CUSTOMER",
+            COURIER: "ROLE_COURIER",
+            ADMIN: "ROLE_ADMIN"
+        }[selectedRole];
 
         if (data.role !== expectedRole) {
             const messages = {
@@ -131,61 +89,82 @@ export async function onLogin(event) {
                 ADMIN: "Этот аккаунт не является аккаунтом администратора."
             };
 
-            showAlert(messages[selectedRole]);
-
+            showError(messages[selectedRole]);
             return;
         }
 
-        saveUserData(data);
         redirectByRole(data.role);
-
     } catch (error) {
-        showAlert(error.message);
+        showError(error.message);
     }
 }
 
-
-export async function onRegister(event) {
+async function onRegister(event) {
     event.preventDefault();
-
     hideAlert();
 
     const email = document.getElementById("regEmail").value.trim();
     const password = document.getElementById("regPassword").value;
-
     const confirmPassword = document.getElementById("regConfirmPassword").value;
 
-    if (!passwordsMatch(password, confirmPassword)) {
-        showAlert("Пароли не совпадают");
+    if (password !== confirmPassword) {
+        showError("Пароли не совпадают");
         return;
     }
 
     try {
-        const data = await registerRequest(
+        const data = await register({
             email,
             password,
             confirmPassword
-        );
+        });
 
-        saveUserData(data);
         redirectByRole(data.role);
-
     } catch (error) {
-        showAlert(error.message);
+        showError(error.message);
     }
 }
 
 function redirectByRole(role) {
-    if (role === "ROLE_CUSTOMER") {
-        window.location.href = "/customer/";
-        return;
-    }
+    const paths = {
+        ROLE_CUSTOMER: "/customer/",
+        ROLE_COURIER: "/courier/",
+        ROLE_ADMIN: "/admin/"
+    };
 
-    if (role === "ROLE_COURIER") {
-        window.location.href = "/courier/";
-    }
+    const path = paths[role];
 
-    if (role === "ROLE_ADMIN") {
-        window.location.href = "/admin/";
+    if (path) {
+        window.location.href = path;
     }
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    document
+        .getElementById("btnCustomer")
+        .addEventListener("click", () => selectRole("CUSTOMER"));
+
+    document
+        .getElementById("btnCourier")
+        .addEventListener("click", () => selectRole("COURIER"));
+
+    document
+        .getElementById("btnAdmin")
+        .addEventListener("click", () => selectRole("ADMIN"));
+
+    document
+        .getElementById("loginTab")
+        .addEventListener("click", () => switchTab("login"));
+
+    document
+        .getElementById("registerTab")
+        .addEventListener("click", () => switchTab("register"));
+
+    document
+        .getElementById("loginForm")
+        .addEventListener("submit", onLogin);
+
+    document
+        .getElementById("registerForm")
+        .addEventListener("submit", onRegister);
+});

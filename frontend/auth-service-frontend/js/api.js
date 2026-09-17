@@ -1,13 +1,31 @@
-import { postJson } from "../common/js/api-client.js";
+import {
+    requestJson
+} from "../../common/js/api-client.js";
 
-export function loginRequest(email, password) {
-    return postJson("/api/auth/login", { email, password }, false);
+export function login(payload) {
+    return requestJson(
+        "/api/auth/login",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        },
+        false
+    );
 }
 
-export function registerRequest(email, password, confirmPassword) {
-    return postJson(
+export function register(payload) {
+    return requestJson(
         "/api/auth/register",
-        { email, password, confirmPassword },
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        },
         false
     );
 }

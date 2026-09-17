@@ -1,13 +1,11 @@
-/* Active delivery */
-
 .active-delivery-card {
     width: 100%;
     max-width: 700px;
-    padding: 24px;
+    padding: 22px;
     background: var(--color-surface);
-    border: 2px solid var(--color-primary);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-sm);
 }
 
 .active-delivery-header {
@@ -15,7 +13,7 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 16px;
-    padding-bottom: 18px;
+    padding-bottom: 16px;
     border-bottom: 1px solid var(--color-border);
 }
 
@@ -28,24 +26,25 @@
 
 .active-delivery-header h2 {
     margin-top: 2px;
-    font-size: 24px;
+    font-size: 23px;
     font-weight: 800;
+    letter-spacing: -.3px;
 }
 
 .active-delivery-body {
-    padding: 20px 0;
+    padding: 18px 0 2px;
 }
 
 .delivery-address-box,
-.delivery-meta-grid>div {
+.delivery-meta-grid > div {
     border: 1px solid var(--color-border);
     border-radius: 10px;
     background: var(--color-surface-muted);
 }
 
 .delivery-address-box {
-    margin-bottom: 16px;
-    padding: 16px;
+    margin-bottom: 12px;
+    padding: 14px 15px;
 }
 
 .delivery-address-box span,
@@ -60,17 +59,17 @@
 }
 
 .delivery-address-box strong {
-    font-size: 16px;
+    font-size: 15px;
 }
 
 .delivery-meta-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
+    gap: 12px;
 }
 
-.delivery-meta-grid>div {
-    padding: 12px 16px;
+.delivery-meta-grid > div {
+    padding: 12px 14px;
 }
 
 .delivery-meta-grid span {
@@ -84,12 +83,12 @@
 .active-delivery-actions {
     display: grid;
     gap: 10px;
-    padding-top: 4px;
+    padding-top: 14px;
 }
 
 .action-btn {
     width: 100%;
-    min-height: 48px;
+    min-height: 46px;
     font-size: 14px;
 }
 
@@ -103,25 +102,23 @@
     border-color: #15803d;
 }
 
-/* Delivery lists */
-
-.waiting-list,
-.orders-list {
+.waiting-list {
     display: grid;
-    gap: 14px;
+    gap: 12px;
 }
 
 .delivery-card {
-    padding: 20px;
+    padding: 18px 20px;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
-    transition: .2s ease;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
 }
 
 .delivery-card:hover {
     transform: translateY(-1px);
+    border-color: #d5dde8;
     box-shadow: var(--shadow-md);
 }
 
@@ -136,13 +133,14 @@
 
 .delivery-card-header h3 {
     font-size: 17px;
+    font-weight: 750;
 }
 
 .delivery-card-body {
     display: grid;
-    grid-template-columns: 2fr 1fr auto;
+    grid-template-columns: minmax(0, 2fr) minmax(150px, 1fr) auto;
     align-items: center;
-    gap: 16px;
+    gap: 18px;
     padding-top: 14px;
 }
 
@@ -154,18 +152,10 @@
     font-size: 14px;
 }
 
-@media (max-width: 760px) {
-    .active-delivery-card {
-        padding: 20px;
-    }
-
-    .delivery-card-body,
-    .delivery-meta-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .active-delivery-header {
-        align-items: flex-start;
-        flex-direction: column;
-    }
+.orders-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
 }

@@ -11,10 +11,10 @@ body {
 }
 
 .auth-card {
-    padding: 32px 30px;
+    padding: 30px;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
-    border-radius: 16px;
+    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
 }
 
@@ -26,7 +26,8 @@ body {
 .brand h1 {
     color: var(--color-text);
     font-size: 26px;
-    font-weight: 750;
+    font-weight: 800;
+    letter-spacing: -.4px;
 }
 
 .role-selector {
@@ -34,6 +35,7 @@ body {
     gap: 5px;
     margin-bottom: 20px;
     padding: 5px;
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     background: var(--color-surface-muted);
 }
@@ -48,7 +50,7 @@ body {
     color: var(--color-text-secondary);
     font-size: 13px;
     font-weight: 600;
-    transition: .2s ease;
+    transition: background-color .2s ease, color .2s ease, box-shadow .2s ease;
 }
 
 .role-btn:hover {
@@ -56,7 +58,7 @@ body {
 }
 
 .role-btn.active {
-    background: #ffffff;
+    background: #fff;
     color: var(--color-text);
     box-shadow: var(--shadow-sm);
 }
@@ -64,19 +66,19 @@ body {
 .tabs {
     display: flex;
     margin-bottom: 20px;
-    border-bottom: 2px solid #f1f5f9;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .tab {
     flex: 1;
     padding: 10px;
     border: 0;
-    border-bottom: 3px solid transparent;
+    border-bottom: 2px solid transparent;
     background: transparent;
     color: #94a3b8;
     font-size: 14px;
     font-weight: 600;
-    transition: .2s ease;
+    transition: color .2s ease, border-color .2s ease;
 }
 
 .tab.active {
@@ -119,18 +121,4 @@ body {
     font-size: 13px;
     line-height: 1.4;
     text-align: center;
-}
-
-@media (max-width: 520px) {
-    .auth-container {
-        padding: 14px;
-    }
-
-    .auth-card {
-        padding: 26px 20px;
-    }
-
-    .role-btn {
-        font-size: 12px;
-    }
 }

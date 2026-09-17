@@ -1,31 +1,28 @@
 import {
-    post
-} from "../common/js/api-client.js";
-
-import {
-    getErrorMessage
-} from "../common/error-handler.js";
+    createOrder as createOrderRequest,
+    payOrder
+} from "./api.js";
 
 import {
     showError,
-    showSuccess,
-    setButtonLoading
-} from "../common/js/ui.js";
+    showSuccess
+} from "../../common/js/notifications.js";
 
 import {
-    escapeHtml,
+    escapeHtml
+} from "../../common/js/utils.js";
+
+import {
     formatPrice,
     buildImageUrl,
     getRussianItemWord
-} from "../common/js/utils.js";
+} from "./utils.js";
 
 import {
     loadMyOrders
 } from "./orders.js";
 
-import {
-    CART_STORAGE_KEY
-} from "../common/js/storage.js";
+const CART_STORAGE_KEY = "cartItems";
 
 let cartItems = [];
 
@@ -43,6 +40,8 @@ export function loadCart() {
     } catch {
         cartItems = [];
     }
+
+    renderCart();
 }
 
 function saveCart() {
@@ -70,8 +69,6 @@ export function addToCart(item) {
     }
 
     saveCart();
-    updateCartCounter();
-    updateCartItemsCount();
     renderCart();
 
     showSuccess(`${item.name} добавлен в корзину`);
@@ -83,8 +80,6 @@ function removeFromCart(itemId) {
     );
 
     saveCart();
-    updateCartCounter();
-    updateCartItemsCount();
     renderCart();
 }
 
@@ -103,8 +98,6 @@ function decreaseQuantity(itemId) {
     }
 
     saveCart();
-    updateCartCounter();
-    updateCartItemsCount();
     renderCart();
 }
 
@@ -118,8 +111,6 @@ function increaseQuantity(itemId) {
     item.quantity += 1;
 
     saveCart();
-    updateCartCounter();
-    updateCartItemsCount();
     renderCart();
 }
 
@@ -138,23 +129,6 @@ function getCartTotal() {
     );
 }
 
-export function updateCartCounter() {
-    const counter = document.getElementById("cartCount");
-
-    if (counter) {
-        counter.textContent = getCartCount();
-    }
-}
-
-export function updateCartItemsCount() {
-    const counter = document.getElementById("cartItemsCount");
-
-    if (!counter) return;
-
-    const count = getCartCount();
-
-    counter.textContent = `${count} ${getRussianItemWord(count)}`;
-}
 
 export function openCart() {
     document
@@ -178,7 +152,19 @@ export function closeCart() {
         ?.classList.add("hidden");
 }
 
-export function renderCart() {
+function renderCart() {
+    const count = getCartCount();
+    const cartCounter = document.getElementById("cartCount");
+    const cartItemsCount = document.getElementById("cartItemsCount");
+
+    if (cartCounter) {
+        cartCounter.textContent = count;
+    }
+
+    if (cartItemsCount) {
+        cartItemsCount.textContent = `${count} ${getRussianItemWord(count)}`;
+    }
+
     const container = document.getElementById("cartItems");
     const empty = document.getElementById("cartEmpty");
     const totalElement = document.getElementById("cartTotal");
@@ -220,7 +206,6 @@ export function renderCart() {
         checkoutButton.disabled = false;
     }
 
-    updateCartItemsCount();
 }
 
 function createCartItem(item) {
@@ -402,6 +387,25 @@ export function closeCheckout() {
 }
 
 
+function setButtonLoading(button, loading) {
+    if (!button) {
+        return;
+    }
+
+    if (loading) {
+        if (!button.dataset.originalText) {
+            button.dataset.originalText = button.textContent;
+        }
+
+        button.textContent = "Обработка...";
+        button.disabled = true;
+        return;
+    }
+
+    button.textContent = button.dataset.originalText || button.textContent;
+    button.disabled = false;
+}
+
 export async function createOrder() {
     clearCheckoutErrors();
 
@@ -447,38 +451,19 @@ export async function createOrder() {
     setButtonLoading(button, true);
 
     try {
-        const response = await post(
-            "/api/orders",
-            {
-                address,
-                items
-            }
+        const order = await createOrderRequest({
+            address,
+            items
+        });
+
+        const paidOrder = await payOrder(
+            order.id,
+            paymentMethod
         );
-
-        if (!response.ok) {
-            throw new Error(await getErrorMessage(response));
-        }
-
-        const order = await response.json();
-
-        const paymentResponse = await post(
-            `/api/orders/${order.id}/pay`,
-            {
-                paymentMethod
-            }
-        );
-
-        if (!paymentResponse.ok) {
-            throw new Error(await getErrorMessage(paymentResponse));
-        }
-
-        const paidOrder = await paymentResponse.json();
 
         cartItems = [];
 
         saveCart();
-        updateCartCounter();
-        updateCartItemsCount();
         renderCart();
 
         closeCheckout();

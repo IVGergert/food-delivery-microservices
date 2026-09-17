@@ -1,169 +1,91 @@
-import {
-    state,
-    logout
-} from "./state.js";
+import * as api from "./api.js";
 
-import {
-    renderUserInfo,
-    showSection
-} from "./ui.js";
+const SECTION_INFO = {
+    menu: ["Меню", "Управление меню ресторана"],
+    users: ["Пользователи", "Управление пользователями"],
+    couriers: ["Курьеры", "Управление курьерами"],
+    orders: ["Заказы", "Управление заказами"],
+    statistics: ["Статистика", "Статистика доставки и заказов"]
+};
 
-import {
-    fetchCourierStatus,
-    fetchTodayStats,
-    fetchCurrentDelivery,
-    fetchWaitingDeliveries,
-    fetchHistoryDeliveries,
-    goOnline,
-    goOffline,
-    acceptDelivery,
-    pickUpOrder,
-    completeDelivery,
-    validateLogout
-} from "./deliveries.js";
+async function loadProfile() {
+    try {
+        const profile = await api.getProfile();
+        const emailElement = document.getElementById("userEmail");
 
-// Application start
-
-document.addEventListener(
-    "DOMContentLoaded",
-    async () => {
-
-        renderUserInfo();
-
-        await fetchCourierStatus();
-        await fetchTodayStats();
-        await fetchCurrentDelivery();
-    }
-);
-
-
-// User actions
-
-document.addEventListener(
-    "click",
-    async event => {
-
-
-        const navItem = event.target.closest(".nav-item");
-
-        if (navItem) {
-            const section = navItem.dataset.section;
-
-            if (!section) return;
-
-            showSection(section);
-
-            if (section === "current") {
-                await fetchCurrentDelivery();
-            }
-
-            if (section === "waiting") {
-                await fetchWaitingDeliveries();
-            }
-
-            if (section === "history") {
-                await fetchHistoryDeliveries();
-            }
-
-            return;
+        if (emailElement) {
+            emailElement.textContent = profile?.email || "Администратор";
         }
+    } catch {
+        const emailElement = document.getElementById("userEmail");
 
-
-        // Online / Offline
-
-        if (event.target.closest("#statusToggleButton")) {
-            if (state.courierStatus === "OFFLINE") {
-                await goOnline();
-            } else {
-                await goOffline();
-            }
-
-            return;
-        }
-
-
-        // Accept delivery
-
-        const acceptButton = event.target.closest(".accept-btn");
-
-        if (acceptButton) {
-            const orderId = acceptButton.dataset.orderId;
-
-            if (orderId) {
-                await acceptDelivery(orderId);
-            }
-
-            return;
-        }
-
-
-        // Pickup
-
-        if (event.target.closest("#pickupButton")) {
-            if (state.currentDelivery) {
-                await pickUpOrder(state.currentDelivery.orderId);
-            }
-
-            return;
-        }
-
-
-        // Complete
-
-        if (event.target.closest("#completeButton")) {
-            if (state.currentDelivery) {
-                await completeDelivery(state.currentDelivery.orderId);
-            }
-
-            return;
-        }
-
-
-        // Go to waiting
-
-        if (event.target.closest("#goToWaitingButton")) {
-            showSection("waiting");
-            await fetchWaitingDeliveries();
-            return;
-        }
-
-
-        // Go online from waiting
-
-        if (event.target.closest("#goOnlineFromWaitingButton")) {
-            await goOnline();
-            return;
-        }
-
-
-        // Refresh waiting
-
-        if (event.target.closest("#refreshWaitingButton")) {
-            await fetchWaitingDeliveries();
-            return;
-        }
-
-
-        // Refresh history
-
-        if (event.target.closest("#refreshHistoryButton")) {
-            await fetchHistoryDeliveries();
-            return;
-        }
-
-
-        // Logout
-
-        const logoutButton = event.target.closest("#logoutButton, #profileLogoutButton");
-
-        if (logoutButton) {
-            const canLogout = await validateLogout();
-
-            if (canLogout) {
-                await logout();
-            }
-
-            return;
+        if (emailElement) {
+            emailElement.textContent = "Администратор";
         }
     }
-);
+}
+
+function showSection(section) {
+    const [title, description] =
+        SECTION_INFO[section] || SECTION_INFO.menu;
+
+    document.getElementById("pageTitle").textContent = title;
+    document.getElementById("pageDescription").textContent = description;
+
+    document.querySelectorAll(".nav-item").forEach(item => {
+        item.classList.toggle(
+            "active",
+            item.dataset.section === section
+        );
+    });
+
+    const content = document.getElementById("content");
+
+    if (!content) {
+        return;
+    }
+
+    content.innerHTML = `
+        <div class="empty-state">
+            <div class="empty-state-icon">${getSectionIcon(section)}</div>
+            <h2>${title}</h2>
+            <p>${description}.</p>
+        </div>
+    `;
+}
+
+function getSectionIcon(section) {
+    return {
+        menu: "🍕",
+        users: "👥",
+        couriers: "🚴",
+        orders: "📦",
+        statistics: "📊"
+    }[section] || "📋";
+}
+
+async function logout() {
+    try {
+        await api.logout();
+    } finally {
+        window.location.href = "/";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    await loadProfile();
+    showSection("menu");
+});
+
+document.addEventListener("click", async event => {
+    const navItem = event.target.closest(".nav-item");
+
+    if (navItem?.dataset.section) {
+        showSection(navItem.dataset.section);
+        return;
+    }
+
+    if (event.target.closest("#logoutButton")) {
+        await logout();
+    }
+});

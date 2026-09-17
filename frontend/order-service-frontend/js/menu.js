@@ -1,13 +1,16 @@
 import {
-    requestJson
-} from "../common/js/api-client.js";
+    getMenu
+} from "./api.js";
 
 import {
-    escapeHtml,
+    escapeHtml
+} from "../../common/js/utils.js";
+
+import {
     formatPrice,
     getRussianItemWord,
     buildImageUrl
-} from "../common/js/utils.js";
+} from "./utils.js";
 
 import {
     addToCart
@@ -29,7 +32,7 @@ export async function loadMenu() {
     showMenuLoading();
 
     try {
-        const data = await requestJson("/api/menu");
+        const data = await getMenu();
         menuItems = Array.isArray(data) ? data : [];
 
         hideMenuLoading();
@@ -42,7 +45,7 @@ export async function loadMenu() {
     }
 }
 
-export function renderCategories() {
+function renderCategories() {
     const container = document.getElementById("categories");
 
     if (!container) return;

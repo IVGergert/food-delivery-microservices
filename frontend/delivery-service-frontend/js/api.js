@@ -1,41 +1,114 @@
 import {
-    postJson,
     requestJson
-} from "../common/js/api-client.js";
+} from "../../common/js/api-client.js";
 
-export const getCourierStatus = () =>
-    requestJson("/api/deliveries/courier/status");
+function jsonOptions(method, body = {}) {
+    return {
+        method,
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+    };
+}
 
-export const getTodayStatistics = () =>
-    requestJson("/api/deliveries/statistics/today");
+export function getProfile() {
+    return requestJson("/api/users/me/profile");
+}
 
-export const getCurrentDeliveryRequest = () =>
-    requestJson("/api/deliveries/current");
+export function updateProfile(payload) {
+    return requestJson(
+        "/api/users/me/profile",
+        jsonOptions("PUT", payload)
+    );
+}
 
-export const getWaitingDeliveriesRequest = () =>
-    requestJson("/api/deliveries/waiting");
+export function changeEmail(payload) {
+    return requestJson(
+        "/api/users/me/email",
+        jsonOptions("PUT", payload)
+    );
+}
 
-export const getHistoryDeliveriesRequest = () =>
-    requestJson("/api/deliveries/history");
+export function changePassword(payload) {
+    return requestJson(
+        "/api/users/me/password",
+        jsonOptions("PUT", payload)
+    );
+}
 
-export const goOnlineRequest = () =>
-    postJson("/api/deliveries/courier/go-online", {});
+export function logout() {
+    return requestJson(
+        "/api/auth/logout",
+        {
+            method: "POST"
+        },
+        false
+    );
+}
 
-export const goOfflineRequest = () =>
-    postJson("/api/deliveries/courier/go-offline", {});
+export function getCourierStatus() {
+    return requestJson(
+        "/api/deliveries/courier/status"
+    );
+}
 
-export const validateLogoutRequest = () =>
-    postJson("/api/deliveries/courier/validate-logout", {});
+export function goOnline() {
+    return requestJson(
+        "/api/deliveries/courier/go-online",
+        jsonOptions("POST")
+    );
+}
 
-export const acceptDeliveryRequest = orderId =>
-    postJson(`/api/deliveries/${orderId}/accept`, {});
+export function goOffline() {
+    return requestJson(
+        "/api/deliveries/courier/go-offline",
+        jsonOptions("POST")
+    );
+}
 
-export const pickUpOrderRequest = orderId =>
-    postJson(`/api/deliveries/${orderId}/pickup`, {});
+export function validateLogout() {
+    return requestJson(
+        "/api/deliveries/courier/validate-logout",
+        jsonOptions("POST")
+    );
+}
 
-export const completeDeliveryRequest = orderId =>
-    postJson(`/api/deliveries/${orderId}/complete`, {});
+export function getCurrentDelivery() {
+    return requestJson("/api/deliveries/current");
+}
 
-export function logoutRequest() {
-    return postJson("/api/auth/logout", {}, false);
+export function getTodayStatistics() {
+    return requestJson(
+        "/api/deliveries/statistics/today"
+    );
+}
+
+export function getHistoryDeliveries() {
+    return requestJson("/api/deliveries/history");
+}
+
+export function getWaitingDeliveries() {
+    return requestJson("/api/deliveries/waiting");
+}
+
+export function acceptDelivery(orderId) {
+    return requestJson(
+        `/api/deliveries/${orderId}/accept`,
+        jsonOptions("POST")
+    );
+}
+
+export function pickUpOrder(orderId) {
+    return requestJson(
+        `/api/deliveries/${orderId}/pickup`,
+        jsonOptions("POST")
+    );
+}
+
+export function completeDelivery(orderId) {
+    return requestJson(
+        `/api/deliveries/${orderId}/complete`,
+        jsonOptions("POST")
+    );
 }

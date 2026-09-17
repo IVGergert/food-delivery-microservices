@@ -1,18 +1,16 @@
 import {
-    get
-} from "../common/js/api-client.js";
-
-import {
-    getErrorMessage
-} from "../common/error-handler.js";
+    getMyOrders
+} from "./api.js";
 
 import {
     escapeHtml,
-    formatDate,
-    formatPrice
-} from "../common/js/utils.js";
+    formatDate
+} from "../../common/js/utils.js";
 
-let selectedOrder = null;
+import {
+    formatPrice
+} from "./utils.js";
+
 
 function getOrderStatusTitle(status) {
     const statuses = {
@@ -72,15 +70,7 @@ export async function loadMyOrders() {
     container.innerHTML = "";
 
     try {
-        const response = await get("/api/orders/my");
-
-        if (!response.ok) {
-            throw new Error(
-                await getErrorMessage(response)
-            );
-        }
-
-        const orders = await response.json();
+        const orders = await getMyOrders();
 
         renderOrders(orders);
 
@@ -190,8 +180,6 @@ function createOrderCard(order) {
 }
 
 function openOrderDetails(order) {
-    selectedOrder = order;
-
     const modal = document.getElementById("orderModal");
     const title = document.getElementById("orderModalTitle");
     const status = document.getElementById("orderModalStatus");
@@ -296,6 +284,4 @@ export function closeOrderDetails() {
     document
         .getElementById("orderModal")
         ?.classList.add("hidden");
-
-    selectedOrder = null;
 }

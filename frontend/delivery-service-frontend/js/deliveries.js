@@ -1,114 +1,108 @@
-import {
-    getCourierStatus,
-    goOnlineRequest,
-    goOfflineRequest,
-    validateLogoutRequest,
-    getTodayStatistics,
-    getCurrentDeliveryRequest,
-    getWaitingDeliveriesRequest,
-    getHistoryDeliveriesRequest,
-    acceptDeliveryRequest,
-    pickUpOrderRequest,
-    completeDeliveryRequest
-} from "./api.js";
-
-import {
-    state
-} from "./state.js";
-
-import {
-    updateStatusUI,
-    showSection,
-    showCurrentLoading,
-    hideCurrentLoading,
-    getDeliveryStatusTitle
-} from "./ui.js";
+import * as api from "./api.js";
 
 import {
     showError,
     showSuccess
-} from "../common/js/ui.js";
+} from "../../common/js/notifications.js";
 
 import {
     formatDate,
     escapeHtml
-} from "../common/js/utils.js";
+} from "../../common/js/utils.js";
 
-// Courier status
+export const state = {
+    courierStatus: "OFFLINE",
+    currentDelivery: null,
+    waitingDeliveries: [],
+    historyDeliveries: []
+};
+
+const DELIVERY_STATUS_TITLES = {
+    WAITING_FOR_COURIER: "Ожидает курьера",
+    COURIER_ASSIGNED: "Назначен курьер",
+    PICKED_UP: "Заказ забран",
+    DELIVERED: "Доставлен 🎉"
+};
+
+function getDeliveryStatusTitle(status) {
+    return DELIVERY_STATUS_TITLES[status] || status || "В работе";
+}
+
+function updateStatusUI() {
+    const toggleBtn = document.getElementById("statusToggleButton");
+    const toggleText = document.getElementById("statusToggleText");
+    const statusBadge = document.getElementById("courierStatusBadge");
+    const isOnline = state.courierStatus !== "OFFLINE";
+
+    toggleBtn?.classList.toggle("online", isOnline);
+    toggleBtn?.classList.toggle("offline", !isOnline);
+
+    if (toggleText) {
+        toggleText.textContent = isOnline ? "На линии (Завершить)" : "Выйти на линию";
+    }
+
+    statusBadge?.classList.toggle("online", isOnline);
+    statusBadge?.classList.toggle("offline", !isOnline);
+
+    if (statusBadge) {
+        statusBadge.textContent = isOnline ? "Онлайн" : "Оффлайн";
+    }
+}
+
+export async function toggleCourierStatus() {
+    if (state.courierStatus === "OFFLINE") {
+        await goOnline();
+        return;
+    }
+
+    await goOffline();
+}
 
 export async function fetchCourierStatus() {
     try {
-        const data = await getCourierStatus();
-
-        if (!data) return;
-
-        state.courierStatus = data.status;
+        const data = await api.getCourierStatus();
+        state.courierStatus = data?.status || "OFFLINE";
         updateStatusUI();
     } catch (error) {
         showError(error.message);
     }
 }
 
-export async function goOnline() {
+async function goOnline() {
     try {
-        const data = await goOnlineRequest();
-
-        if (!data) return;
-
-        state.courierStatus = data.status;
+        const data = await api.goOnline();
+        state.courierStatus = data?.status || state.courierStatus;
         updateStatusUI();
-
         showSuccess("Вы успешно вышли на линию!");
-
         await fetchWaitingDeliveries();
     } catch (error) {
         showError(error.message);
     }
 }
 
-export async function goOffline() {
+async function goOffline() {
     try {
-        const data = await goOfflineRequest();
-
-        if (!data) return;
-
-        state.courierStatus = data.status;
+        const data = await api.goOffline();
+        state.courierStatus = data?.status || state.courierStatus;
         updateStatusUI();
-
         showSuccess("Вы ушли с линии.");
     } catch (error) {
         showError(error.message);
     }
 }
 
-// Logout
-
-export async function validateLogout() {
-    try {
-        await validateLogoutRequest();
-        return true;
-    } catch (error) {
-        showError(error.message);
-        return false;
-    }
-}
-
-// Current delivery
-
 export async function fetchCurrentDelivery() {
-    showCurrentLoading();
+    document.getElementById("currentLoading")?.classList.remove("hidden");
 
     try {
-        const data = await getCurrentDeliveryRequest();
-
-        state.currentDelivery = data;
+        state.currentDelivery = await api.getCurrentDelivery();
         renderCurrentDelivery();
     } catch (error) {
         state.currentDelivery = null;
         renderCurrentDelivery();
         showError(error.message);
     } finally {
-        hideCurrentLoading();
+        document.getElementById("currentLoading")?.classList.add("hidden");
     }
 }
 
@@ -117,7 +111,6 @@ function renderCurrentDelivery() {
     const empty = document.getElementById("noActiveDelivery");
     const pickupBtn = document.getElementById("pickupButton");
     const completeBtn = document.getElementById("completeButton");
-
     const delivery = state.currentDelivery;
 
     if (!delivery) {
@@ -129,60 +122,42 @@ function renderCurrentDelivery() {
     empty?.classList.add("hidden");
     card?.classList.remove("hidden");
 
-    document.getElementById("activeOrderId").textContent =
-        `Заказ №${delivery.orderId}`;
-
-    document.getElementById("activeAddress").textContent =
-        delivery.address || "Не указан";
-
-    document.getElementById("activeEta").textContent =
-        delivery.etaMinutes
-            ? `~${delivery.etaMinutes} мин.`
-            : "-";
-
-    document.getElementById("activeDeliveryStatus").textContent =
-        getDeliveryStatusTitle(delivery.deliveryStatus);
+    document.getElementById("activeOrderId").textContent = `Заказ №${delivery.orderId}`;
+    document.getElementById("activeAddress").textContent = delivery.address || "Не указан";
+    document.getElementById("activeEta").textContent = delivery.etaMinutes ? `~${delivery.etaMinutes} мин.` : "-";
+    document.getElementById("activeDeliveryStatus").textContent = getDeliveryStatusTitle(delivery.deliveryStatus);
 
     if (delivery.deliveryStatus === "COURIER_ASSIGNED") {
-        document.getElementById("activeCourierState").textContent =
-            "Едет в ресторан 🏪";
-
+        document.getElementById("activeCourierState").textContent = "Едет в ресторан 🏪";
         pickupBtn?.classList.remove("hidden");
         completeBtn?.classList.add("hidden");
-    }
-
-    if (delivery.deliveryStatus === "PICKED_UP") {
-        document.getElementById("activeCourierState").textContent =
-            "В пути к клиенту 🚚";
-
+    } else if (delivery.deliveryStatus === "PICKED_UP") {
+        document.getElementById("activeCourierState").textContent = "В пути к клиенту 🚚";
         pickupBtn?.classList.add("hidden");
         completeBtn?.classList.remove("hidden");
+    } else {
+        pickupBtn?.classList.add("hidden");
+        completeBtn?.classList.add("hidden");
     }
 }
 
-// Delivery actions
-
 export async function acceptDelivery(orderId) {
     try {
-        await acceptDeliveryRequest(orderId);
-
+        await api.acceptDelivery(orderId);
         showSuccess(`Заказ №${orderId} успешно принят!`);
-
         await fetchCourierStatus();
         await fetchCurrentDelivery();
-
-        showSection("current");
+        return true;
     } catch (error) {
         showError(error.message);
+        return false;
     }
 }
 
 export async function pickUpOrder(orderId) {
     try {
-        await pickUpOrderRequest(orderId);
-
+        await api.pickUpOrder(orderId);
         showSuccess("Заказ забран из ресторана! Направляйтесь к клиенту.");
-
         await fetchCourierStatus();
         await fetchCurrentDelivery();
     } catch (error) {
@@ -192,10 +167,8 @@ export async function pickUpOrder(orderId) {
 
 export async function completeDelivery(orderId) {
     try {
-        await completeDeliveryRequest(orderId);
-
+        await api.completeDelivery(orderId);
         showSuccess(`Заказ №${orderId} успешно доставлен!`);
-
         await fetchCourierStatus();
         await fetchTodayStats();
         await fetchCurrentDelivery();
@@ -203,8 +176,6 @@ export async function completeDelivery(orderId) {
         showError(error.message);
     }
 }
-
-// Waiting deliveries
 
 export async function fetchWaitingDeliveries() {
     const container = document.getElementById("waitingList");
@@ -219,10 +190,7 @@ export async function fetchWaitingDeliveries() {
     }
 
     try {
-        const data = await getWaitingDeliveriesRequest();
-
-        state.waitingDeliveries = data || [];
-
+        state.waitingDeliveries = await api.getWaitingDeliveries() || [];
         renderWaitingDeliveries();
     } catch (error) {
         if (container) {
@@ -243,13 +211,14 @@ function renderWaitingDeliveries() {
     const container = document.getElementById("waitingList");
     const empty = document.getElementById("waitingEmpty");
 
-    if (!container) return;
+    if (!container) {
+        return;
+    }
 
     container.innerHTML = "";
-
     const deliveries = state.waitingDeliveries;
 
-    if (!deliveries?.length) {
+    if (!deliveries.length) {
         empty?.classList.remove("hidden");
         return;
     }
@@ -258,71 +227,44 @@ function renderWaitingDeliveries() {
 
     deliveries.forEach(delivery => {
         const card = document.createElement("article");
-
         card.className = "delivery-card";
-
         card.innerHTML = `
             <div class="delivery-card-header">
                 <h3>Заказ №${delivery.orderId}</h3>
-
-                <span class="order-status status-warning">
-                    Ожидает курьера
-                </span>
+                <span class="order-status status-warning">Ожидает курьера</span>
             </div>
-
             <div class="delivery-card-body">
                 <div>
                     <span>Адрес доставки</span>
-                    <strong>
-                        ${escapeHtml(delivery.address)}
-                    </strong>
+                    <strong>${escapeHtml(delivery.address || "Не указан")}</strong>
                 </div>
-
                 <div>
                     <span>Время на доставку</span>
-                    <strong>
-                        ~${delivery.etaMinutes} мин.
-                    </strong>
+                    <strong>~${delivery.etaMinutes ?? "-"} мин.</strong>
                 </div>
-
                 <div>
-                    <button
-                        type="button"
-                        class="primary-button accept-btn"
-                        data-order-id="${delivery.orderId}"
-                    >
+                    <button type="button" class="primary-button accept-btn" data-order-id="${delivery.orderId}">
                         Принять заказ
                     </button>
                 </div>
             </div>
         `;
-
         container.appendChild(card);
     });
 }
 
-// Statistics
-
 export async function fetchTodayStats() {
     try {
-        const data = await getTodayStatistics();
-
-        if (!data) return;
-
+        const data = await api.getTodayStatistics();
         const countElement = document.getElementById("todayCount");
 
         if (countElement) {
-            countElement.textContent =
-                data.completedDeliveriesCount ??
-                data.completedToday ??
-                0;
+            countElement.textContent = data?.completedToday ?? 0;
         }
     } catch (error) {
         showError(error.message);
     }
 }
-
-// History
 
 export async function fetchHistoryDeliveries() {
     const container = document.getElementById("historyList");
@@ -337,10 +279,7 @@ export async function fetchHistoryDeliveries() {
     }
 
     try {
-        const data = await getHistoryDeliveriesRequest();
-
-        state.historyDeliveries = data || [];
-
+        state.historyDeliveries = await api.getHistoryDeliveries() || [];
         renderHistory();
     } catch (error) {
         if (container) {
@@ -361,13 +300,14 @@ function renderHistory() {
     const container = document.getElementById("historyList");
     const empty = document.getElementById("historyEmpty");
 
-    if (!container) return;
+    if (!container) {
+        return;
+    }
 
     container.innerHTML = "";
-
     const deliveries = state.historyDeliveries;
 
-    if (!deliveries?.length) {
+    if (!deliveries.length) {
         empty?.classList.remove("hidden");
         return;
     }
@@ -376,44 +316,32 @@ function renderHistory() {
 
     deliveries.forEach(delivery => {
         const card = document.createElement("article");
-
         card.className = "delivery-card";
-
         card.innerHTML = `
             <div class="delivery-card-header">
                 <div>
                     <h3>Заказ №${delivery.orderId}</h3>
-
                     <span class="order-date">
-                        Доставка завершена:
-                        ${formatDate(delivery.completedAt)}
+                        Доставка завершена: ${formatDate(delivery.completedAt)}
                     </span>
                 </div>
-
-                <span class="order-status status-success">
-                    ${getDeliveryStatusTitle(delivery.deliveryStatus)}
-                </span>
+                <span class="order-status status-success">Доставлен 🎉</span>
             </div>
-
             <div class="delivery-card-body">
                 <div>
-                    <span>Адрес</span>
-                    <strong>
-                        ${escapeHtml(delivery.address || "-")}
-                    </strong>
+                    <span>Адрес доставки</span>
+                    <strong>${escapeHtml(delivery.address || "Не указан")}</strong>
                 </div>
-
                 <div>
                     <span>Время доставки</span>
-                    <strong>
-                        ${delivery.etaMinutes
-            ? `${delivery.etaMinutes} мин.`
-            : "-"}
-                    </strong>
+                    <strong>${delivery.etaMinutes != null ? `${delivery.etaMinutes} мин.` : "-"}</strong>
+                </div>
+                <div>
+                    <span>Статус</span>
+                    <strong>Завершено</strong>
                 </div>
             </div>
         `;
-
         container.appendChild(card);
     });
 }

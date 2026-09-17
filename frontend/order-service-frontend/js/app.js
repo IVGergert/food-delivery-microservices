@@ -1,21 +1,15 @@
-import {
-    logout
-} from "./auth.js";
+import * as api from "./api.js";
 
 import {
-    renderUserInfo
-} from "../common/js/ui.js";
+    showProfile
+} from "../../common/js/profile.js";
 
 import {
-    loadMenu,
-    renderCategories
+    loadMenu
 } from "./menu.js";
 
 import {
     loadCart,
-    updateCartCounter,
-    updateCartItemsCount,
-    renderCart,
     openCart,
     closeCart,
     openCheckout,
@@ -24,39 +18,119 @@ import {
 } from "./cart.js";
 
 import {
-    initNavigation
-} from "./navigation.js";
-
-import {
+    loadMyOrders,
     closeOrderDetails
 } from "./orders.js";
 
+
+const SECTIONS = {
+    menu: ["menuSection", "Меню", "Выберите блюда для заказа"],
+    orders: ["ordersSection", "Мои заказы", "История ваших заказов"]
+};
+
+function showSection(section) {
+    hideSections();
+
+    if (section === "profile") {
+        showProfile(api);
+        updateNavigation(section);
+        return;
+    }
+
+    const [sectionId, title, subtitle] = SECTIONS[section] || SECTIONS.menu;
+
+    document.getElementById(sectionId)?.classList.remove("hidden");
+    updatePageHeader(title, subtitle);
+    updateNavigation(section);
+
+    if (section === "orders") {
+        loadMyOrders();
+    }
+}
+
+function hideSections() {
+    [
+        "menuSection",
+        "ordersSection",
+        "profileSection"
+    ].forEach(id => {
+        document.getElementById(id)?.classList.add("hidden");
+    });
+}
+
+function updateNavigation(section) {
+    document.querySelectorAll(".nav-item").forEach(item => {
+        item.classList.toggle("active", item.dataset.section === section);
+    });
+}
+
+function updatePageHeader(title, subtitle) {
+    const titleElement = document.getElementById("pageTitle");
+    const subtitleElement = document.getElementById("pageSubtitle");
+
+    if (titleElement) {
+        titleElement.textContent = title;
+    }
+
+    if (subtitleElement) {
+        subtitleElement.textContent = subtitle;
+    }
+}
+
+async function logout() {
+    try {
+        await api.logout();
+    } catch {
+        // The browser is redirected even when the server logout fails.
+    } finally {
+        localStorage.removeItem("cartItems");
+        window.location.href = "/";
+    }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     loadCart();
-    renderUserInfo();
 
-    renderCategories();
-    updateCartCounter();
-    updateCartItemsCount();
-    renderCart();
+    try {
+        const profile = await api.getProfile();
+        const emailElement = document.getElementById("userEmail");
 
-    initNavigation();
+        if (emailElement) {
+            emailElement.textContent = profile?.email || "Пользователь";
+        }
+    } catch {
+        // API client handles expired sessions; keep the page bootstrap quiet here.
+    }
 
     await loadMenu();
 });
 
 document.addEventListener("keydown", event => {
-    if (event.key === "Escape") {
-        document.dispatchEvent(
-            new CustomEvent("close-modals")
-        );
+    if (event.key !== "Escape") {
+        return;
     }
+
+    closeCart();
+    closeCheckout();
+    closeOrderDetails();
+    document.dispatchEvent(new CustomEvent("close-modals"));
 });
 
-document.addEventListener("click", event => {
+document.addEventListener("click", async event => {
+    const navItem = event.target.closest(".nav-item");
+
+    if (navItem) {
+        const section = navItem.dataset.section;
+
+        if (section) {
+            showSection(section);
+        }
+
+        return;
+    }
 
     if (event.target.closest("#logoutButton")) {
-        logout();
+        await logout();
         return;
     }
 
@@ -86,7 +160,20 @@ document.addEventListener("click", event => {
     }
 
     if (event.target.closest("#refreshOrdersButton")) {
-        document.dispatchEvent(new CustomEvent("refresh-orders"));
+        const ordersButton = event.target.closest("#refreshOrdersButton");
+        ordersButton.disabled = true;
+
+        try {
+            await loadMyOrders();
+        } finally {
+            ordersButton.disabled = false;
+        }
+
+        return;
+    }
+
+    if (event.target.closest("#retryMenuButton")) {
+        await loadMenu();
         return;
     }
 
@@ -107,6 +194,4 @@ document.addEventListener("submit", event => {
     }
 });
 
-document.addEventListener("profile-logout", () => {
-    logout();
-});
+document.addEventListener("profile-logout", logout);

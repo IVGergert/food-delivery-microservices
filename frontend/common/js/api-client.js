@@ -1,10 +1,6 @@
 import {
     getErrorMessage
-} from "../error-handler.js";
-
-import {
-    clearUserData
-} from "./storage.js";
+} from "./error-handler.js";
 
 const MUTATING_METHODS = new Set([
     "POST",
@@ -13,7 +9,13 @@ const MUTATING_METHODS = new Set([
     "DELETE"
 ]);
 
+let refreshPromise = null;
+
 function getCsrfToken() {
+    if (typeof document === "undefined") {
+        return null;
+    }
+
     const cookie = document.cookie
         .split("; ")
         .find(row => row.startsWith("XSRF-TOKEN="));
@@ -22,9 +24,13 @@ function getCsrfToken() {
         return null;
     }
 
-    return decodeURIComponent(
-        cookie.substring("XSRF-TOKEN=".length)
-    );
+    const value = cookie.substring("XSRF-TOKEN=".length);
+
+    try {
+        return decodeURIComponent(value);
+    } catch {
+        return value;
+    }
 }
 
 async function ensureCsrfToken() {
@@ -48,29 +54,40 @@ async function ensureCsrfToken() {
 }
 
 async function refreshAccessToken() {
-    try {
-        const csrfToken = await ensureCsrfToken();
-
-        const response = await fetch("/api/auth/refresh", {
-            method: "POST",
-            credentials: "include",
-            headers: {
-                "X-XSRF-TOKEN": csrfToken
-            }
-        });
-
-        return response.ok;
-    } catch {
-        return false;
+    if (refreshPromise) {
+        return refreshPromise;
     }
+
+    refreshPromise = (async () => {
+        try {
+            const csrfToken = await ensureCsrfToken();
+
+            const response = await fetch("/api/auth/refresh", {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "X-XSRF-TOKEN": csrfToken
+                }
+            });
+
+            return response.ok;
+        } catch {
+            return false;
+        } finally {
+            refreshPromise = null;
+        }
+    })();
+
+    return refreshPromise;
 }
 
 function redirectToLogin() {
-    clearUserData();
-    window.location.href = "/";
+    if (typeof window !== "undefined") {
+        window.location.href = "/";
+    }
 }
 
-export async function request(
+async function request(
     url,
     options = {},
     retryUnauthorized = true
@@ -91,53 +108,24 @@ export async function request(
         headers
     });
 
-    if (response.status === 401 && retryUnauthorized) {
-        const refreshed = await refreshAccessToken();
-
-        if (refreshed) {
-            return request(url, options, false);
-        }
-
-        redirectToLogin();
+    if (response.status !== 401 || !retryUnauthorized) {
+        return response;
     }
 
-    return response;
+    const refreshed = await refreshAccessToken();
+
+    if (!refreshed) {
+        redirectToLogin();
+        return response;
+    }
+
+    return request(url, options, false);
 }
 
-export function get(url, headers = {}) {
-    return request(url, {
-        method: "GET",
-        headers
-    });
-}
+export async function requestJson(url,
+                                  options = {},
+                                  retryUnauthorized = true) {
 
-export function post(url, body, headers = {}) {
-    return request(url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            ...headers
-        },
-        body: JSON.stringify(body)
-    });
-}
-
-export function put(url, body, headers = {}) {
-    return request(url, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            ...headers
-        },
-        body: JSON.stringify(body)
-    });
-}
-
-export async function requestJson(
-    url,
-    options = {},
-    retryUnauthorized = true
-) {
     const response = await request(
         url,
         options,
@@ -153,18 +141,4 @@ export async function requestJson(
     }
 
     return response.json();
-}
-
-export function postJson(url, body, retryUnauthorized = true) {
-    return requestJson(
-        url,
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(body)
-        },
-        retryUnauthorized
-    );
 }

@@ -1,29 +1,27 @@
-/* Categories */
-
 .categories {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 28px;
+    margin-bottom: 26px;
     padding-bottom: 4px;
     overflow-x: auto;
     scrollbar-width: thin;
 }
 
 .category-button {
-    min-height: 42px;
+    min-height: 40px;
     display: inline-flex;
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
-    padding: 0 15px;
+    padding: 0 14px;
     border: 1px solid var(--color-border);
     border-radius: 10px;
     background: var(--color-surface);
     color: var(--color-text-secondary);
     font-size: 13px;
     font-weight: 600;
-    transition: .2s ease;
+    transition: border-color .2s ease, background-color .2s ease, color .2s ease;
 }
 
 .category-button:hover {
@@ -34,11 +32,11 @@
 .category-button.active {
     border-color: var(--color-primary);
     background: var(--color-primary);
-    color: #ffffff;
+    color: #fff;
 }
 
 .category-icon {
-    font-size: 16px;
+    font-size: 15px;
 }
 
 .category-badge {
@@ -51,29 +49,27 @@
 }
 
 .category-button.active .category-badge {
-    background: rgba(255, 255, 255, .25);
-    color: #ffffff;
+    background: rgba(255, 255, 255, .22);
+    color: #fff;
 }
-
-/* Menu */
 
 .menu-grid {
     width: 100%;
 }
 
 .menu-category-section {
-    margin-bottom: 38px;
+    margin-bottom: 34px;
 }
 
 .menu-category-header {
     display: flex;
     align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 11px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
     border-bottom: 1px solid var(--color-border);
 }
 
-.menu-category-header>div {
+.menu-category-header > div {
     display: flex;
     align-items: baseline;
     gap: 10px;
@@ -93,7 +89,7 @@
 .menu-category-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 20px;
+    gap: 18px;
 }
 
 .menu-card {
@@ -105,18 +101,19 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
-    transition: .2s ease;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
 }
 
 .menu-card:hover {
     transform: translateY(-2px);
+    border-color: #d5dde8;
     box-shadow: var(--shadow-md);
 }
 
 .menu-card-image {
     position: relative;
     width: 100%;
-    height: 190px;
+    height: 180px;
     overflow: hidden;
     background: var(--color-surface-muted);
 }
@@ -126,11 +123,11 @@
     height: 100%;
     display: block;
     object-fit: cover;
-    transition: .3s ease;
+    transition: transform .3s ease;
 }
 
 .menu-card:hover .menu-card-image img {
-    transform: scale(1.03);
+    transform: scale(1.025);
 }
 
 .image-placeholder,
@@ -157,7 +154,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 17px;
+    padding: 16px;
 }
 
 .menu-card-category {
@@ -182,7 +179,7 @@
     overflow: hidden;
     color: var(--color-text-secondary);
     font-size: 13px;
-    line-height: 1.6;
+    line-height: 1.55;
 }
 
 .menu-card-bottom {
@@ -191,7 +188,7 @@
     justify-content: space-between;
     gap: 10px;
     margin-top: auto;
-    padding-top: 16px;
+    padding-top: 15px;
 }
 
 .menu-card-price {
@@ -206,49 +203,13 @@
     border: 0;
     border-radius: 9px;
     background: var(--color-primary);
-    color: #ffffff;
+    color: #fff;
     font-size: 13px;
     font-weight: 700;
-    transition: .2s ease;
+    transition: background-color .2s ease, transform .2s ease;
 }
 
 .add-to-cart-button:hover {
     background: var(--color-primary-dark);
-}
-
-@media (max-width: 1300px) {
-    .menu-category-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-}
-
-@media (max-width: 1050px) {
-    .menu-category-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-@media (max-width: 760px) {
-    .menu-category-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .menu-card-image {
-        height: 220px;
-    }
-}
-
-@media (max-width: 520px) {
-    .categories {
-        margin-bottom: 20px;
-    }
-
-    .category-button {
-        min-height: 40px;
-        padding: 0 14px;
-    }
-
-    .menu-card-image {
-        height: 200px;
-    }
+    transform: translateY(-1px);
 }

@@ -1,48 +1,31 @@
-import {
-    get,
-    put
-} from "./api-client.js";
+const ROLE_LABELS = {
+    ROLE_CUSTOMER: "Клиент",
+    ROLE_COURIER: "Курьер",
+    ROLE_ADMIN: "Администратор"
+};
 
-import {
-    getErrorMessage
-} from "../error-handler.js";
-
-const PROFILE_PATH = "/api/users/me/profile";
-const EMAIL_PATH = "/api/users/me/email";
-const PASSWORD_PATH = "/api/users/me/password";
-
-export async function showProfile({
-    containerSelector = ".main-content",
-    title = "Профиль",
-    subtitle = "Ваши личные данные"
-} = {}) {
+export async function showProfile(api) {
     let profileSection = document.getElementById("profileSection");
 
     if (!profileSection) {
-        profileSection = createProfileSection();
+        profileSection = createProfileSection(api);
 
         document
-            .querySelector(containerSelector)
+            .querySelector(".main-content")
             ?.appendChild(profileSection);
     }
 
     profileSection?.classList.remove("hidden");
 
-    const titleElement = document.getElementById("pageTitle");
-    const subtitleElement = document.getElementById("pageSubtitle");
+    setPageHeader(
+        "Профиль",
+        "Ваши личные данные"
+    );
 
-    if (titleElement) {
-        titleElement.textContent = title;
-    }
-
-    if (subtitleElement) {
-        subtitleElement.textContent = subtitle;
-    }
-
-    await loadProfile();
+    await loadProfile(api);
 }
 
-export function createProfileSection() {
+function createProfileSection(api) {
     const section = document.createElement("section");
 
     section.id = "profileSection";
@@ -113,78 +96,99 @@ export function createProfileSection() {
 
     section
         .querySelector("#saveProfileButton")
-        .addEventListener("click", updateProfile);
+        .addEventListener("click", () => updateProfile(api));
 
     section
         .querySelector("#changeEmailButton")
-        .addEventListener("click", openChangeEmailModal);
+        .addEventListener("click", () => openChangeEmailModal(api));
 
     section
         .querySelector("#changePasswordButton")
-        .addEventListener("click", openChangePasswordModal);
+        .addEventListener("click", () => openChangePasswordModal(api));
 
     section
         .querySelector("#profileLogoutButton")
         .addEventListener("click", event => {
             event.stopPropagation();
-            document.dispatchEvent(new CustomEvent("profile-logout"));
+            document.dispatchEvent(
+                new CustomEvent("profile-logout")
+            );
         });
 
     return section;
 }
 
-async function loadProfile() {
+async function loadProfile(api) {
     try {
-        const response = await get(PROFILE_PATH);
+        const profile = await api.getProfile();
 
-        if (!response.ok) {
-            showProfileError(await getErrorMessage(response));
-            return;
+        const email = document.getElementById("profileEmail");
+        const firstName = document.getElementById("profileFirstName");
+        const lastName = document.getElementById("profileLastName");
+        const role = document.getElementById("profileRole");
+
+        if (email) {
+            email.value = profile?.email ?? "";
         }
 
-        const profile = await response.json();
+        if (firstName) {
+            firstName.value = profile?.firstName ?? "";
+        }
 
-        document.getElementById("profileEmail").value = profile.email ?? "";
-        document.getElementById("profileFirstName").value = profile.firstName ?? "";
-        document.getElementById("profileLastName").value = profile.lastName ?? "";
-        document.getElementById("profileRole").value = profile.role ?? "";
+        if (lastName) {
+            lastName.value = profile?.lastName ?? "";
+        }
 
-        hideProfileError();
+        if (role) {
+            role.value =
+                ROLE_LABELS[profile?.role]
+                ?? profile?.role
+                ?? "";
+        }
+
+        hideProfileMessage();
     } catch (error) {
-        showProfileError(error.message || "Не удалось загрузить профиль");
-    }
-}
-
-async function updateProfile() {
-    const firstName = document.getElementById("profileFirstName").value;
-    const lastName = document.getElementById("profileLastName").value;
-
-    try {
-        const response = await put(
-            PROFILE_PATH,
-            {
-                firstName,
-                lastName
-            }
+        showProfileMessage(
+            error.message || "Не удалось загрузить профиль",
+            false
         );
-
-        if (!response.ok) {
-            showProfileError(await getErrorMessage(response));
-            return;
-        }
-
-        const profile = await response.json();
-
-        document.getElementById("profileFirstName").value = profile.firstName ?? "";
-        document.getElementById("profileLastName").value = profile.lastName ?? "";
-
-        showProfileError("Профиль успешно обновлён", true);
-    } catch (error) {
-        showProfileError(error.message || "Не удалось обновить профиль");
     }
 }
 
-function openChangeEmailModal() {
+async function updateProfile(api) {
+    const firstName = document
+        .getElementById("profileFirstName")
+        ?.value.trim() || "";
+
+    const lastName = document
+        .getElementById("profileLastName")
+        ?.value.trim() || "";
+
+    try {
+        const profile = await api.updateProfile({
+            firstName,
+            lastName
+        });
+
+        document.getElementById("profileFirstName").value =
+            profile?.firstName ?? "";
+
+        document.getElementById("profileLastName").value =
+            profile?.lastName ?? "";
+
+        showProfileMessage(
+            "Профиль успешно обновлён",
+            true
+        );
+    } catch (error) {
+        showProfileMessage(
+            error.message || "Не удалось обновить профиль",
+            false
+        );
+    }
+}
+
+function openChangeEmailModal(api) {
     closeChangeEmailModal();
 
     const modal = document.createElement("div");
@@ -232,43 +236,47 @@ function openChangeEmailModal() {
 
     modal
         .querySelector("#saveNewEmail")
-        .addEventListener("click", changeEmail);
+        .addEventListener("click", () => changeEmail(api));
 }
 
-async function changeEmail() {
-    const email = document.getElementById("newEmail").value;
-    const currentPassword = document.getElementById("emailCurrentPassword").value;
-    const errorElement = document.getElementById("changeEmailError");
+async function changeEmail(api) {
+    const email = document
+        .getElementById("newEmail")
+        ?.value.trim() || "";
+
+    const currentPassword = document
+        .getElementById("emailCurrentPassword")
+        ?.value || "";
 
     try {
-        const response = await put(
-            EMAIL_PATH,
-            {
-                email,
-                currentPassword
-            }
-        );
-
-        if (!response.ok) {
-            errorElement.textContent = await getErrorMessage(response);
-            errorElement.classList.remove("hidden");
-            return;
-        }
+        await api.changeEmail({
+            email,
+            currentPassword
+        });
 
         closeChangeEmailModal();
-        await loadProfile();
-        showProfileError("Email успешно изменён", true);
+        await loadProfile(api);
+
+        showProfileMessage(
+            "Email успешно изменён",
+            true
+        );
+
     } catch (error) {
-        errorElement.textContent = error.message || "Не удалось изменить email";
-        errorElement.classList.remove("hidden");
+        showModalError(
+            "changeEmailError",
+            error.message || "Не удалось изменить email"
+        );
     }
 }
 
 function closeChangeEmailModal() {
-    document.getElementById("changeEmailModal")?.remove();
+    document
+        .getElementById("changeEmailModal")
+        ?.remove();
 }
 
-function openChangePasswordModal() {
+function openChangePasswordModal(api) {
     closeChangePasswordModal();
 
     const modal = document.createElement("div");
@@ -291,12 +299,12 @@ function openChangePasswordModal() {
 
                 <div class="form-group">
                     <label for="newPassword">Новый пароль</label>
-                    <input type="password" id="newPassword" placeholder="Введите новый пароль">
+                    <input type="password" id="newPassword" placeholder="Введите новый пароль" minlength="6" maxlength="16">
                 </div>
 
                 <div class="form-group">
                     <label for="confirmPassword">Подтверждение пароля</label>
-                    <input type="password" id="confirmPassword" placeholder="Повторите новый пароль">
+                    <input type="password" id="confirmPassword" placeholder="Повторите новый пароль" minlength="6" maxlength="16">
                 </div>
 
                 <div class="alert hidden" id="changePasswordError"></div>
@@ -321,70 +329,107 @@ function openChangePasswordModal() {
 
     modal
         .querySelector("#saveNewPassword")
-        .addEventListener("click", changePassword);
+        .addEventListener("click", () => changePassword(api));
 }
 
-async function changePassword() {
-    const currentPassword = document.getElementById("currentPassword").value;
-    const newPassword = document.getElementById("newPassword").value;
-    const confirmPassword = document.getElementById("confirmPassword").value;
-    const errorElement = document.getElementById("changePasswordError");
+async function changePassword(api) {
+    const currentPassword = document
+        .getElementById("currentPassword")
+        ?.value || "";
 
-    try {
-        const response = await put(
-            PASSWORD_PATH,
-            {
-                currentPassword,
-                newPassword,
-                confirmPassword
-            }
+    const newPassword = document
+        .getElementById("newPassword")
+        ?.value || "";
+
+    const confirmPassword = document
+        .getElementById("confirmPassword")
+        ?.value || "";
+
+    if (newPassword !== confirmPassword) {
+        showModalError(
+            "changePasswordError",
+            "Пароли не совпадают"
         );
 
-        if (!response.ok) {
-            errorElement.textContent = await getErrorMessage(response);
-            errorElement.classList.remove("hidden");
-            return;
-        }
+        return;
+    }
+
+    try {
+        await api.changePassword({
+            currentPassword,
+            newPassword,
+            confirmPassword
+        });
 
         closeChangePasswordModal();
-        showProfileError("Пароль успешно изменён", true);
+        showProfileMessage(
+            "Пароль успешно изменён",
+            true
+        );
+
     } catch (error) {
-        errorElement.textContent = error.message || "Не удалось изменить пароль";
-        errorElement.classList.remove("hidden");
+        showModalError(
+            "changePasswordError",
+            error.message || "Не удалось изменить пароль"
+        );
     }
 }
 
 function closeChangePasswordModal() {
-    document.getElementById("changePasswordModal")?.remove();
+    document
+        .getElementById("changePasswordModal")
+        ?.remove();
 }
 
-function showProfileError(message, success = false) {
-    const errorElement = document.getElementById("profileError");
+function showModalError(elementId, message) {
+    const element = document.getElementById(elementId);
 
-    if (!errorElement) {
+    if (!element) {
         return;
     }
 
-    errorElement.textContent = message;
-    errorElement.classList.remove("hidden");
-    errorElement.classList.toggle("success", success);
+    element.textContent = message;
+    element.className = "alert alert-danger";
 }
 
-function hideProfileError() {
-    const errorElement = document.getElementById("profileError");
+function showProfileMessage(message, success) {
+    const element = document.getElementById("profileError");
 
-    if (!errorElement) {
+    if (!element) {
         return;
     }
 
-    errorElement.textContent = "";
-    errorElement.classList.add("hidden");
-    errorElement.classList.remove("success");
+    element.textContent = message;
+    element.className = success
+        ? "alert alert-success"
+        : "alert alert-danger";
 }
 
-if (typeof document !== "undefined") {
-    document.addEventListener("close-modals", () => {
-        closeChangeEmailModal();
-        closeChangePasswordModal();
-    });
+function hideProfileMessage() {
+    const element = document.getElementById("profileError");
+
+    if (!element) {
+        return;
+    }
+
+    element.textContent = "";
+    element.className = "alert hidden";
 }
+
+function setPageHeader(title, subtitle) {
+    const titleElement = document.getElementById("pageTitle");
+    const subtitleElement = document.getElementById("pageSubtitle");
+
+    if (titleElement) {
+        titleElement.textContent = title;
+    }
+
+    if (subtitleElement) {
+        subtitleElement.textContent = subtitle;
+    }
+}
+
+document.addEventListener("close-modals", () => {
+    closeChangeEmailModal();
+    closeChangePasswordModal();
+});

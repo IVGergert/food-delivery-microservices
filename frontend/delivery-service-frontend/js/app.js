@@ -1,168 +1,189 @@
+import * as api from "./api.js";
+
+import {
+    showProfile
+} from "../../common/js/profile.js";
+
+import {
+    showError
+} from "../../common/js/notifications.js";
+
 import {
     state,
-    logout
-} from "./state.js";
-
-import {
-    showSection
-} from "./ui.js";
-
-import {
-    renderUserInfo
-} from "../common/js/ui.js";
-
-import {
+    toggleCourierStatus,
     fetchCourierStatus,
     fetchTodayStats,
     fetchCurrentDelivery,
     fetchWaitingDeliveries,
     fetchHistoryDeliveries,
-    goOnline,
-    goOffline,
     acceptDelivery,
     pickUpOrder,
-    completeDelivery,
-    validateLogout
+    completeDelivery
 } from "./deliveries.js";
 
-// Application start
+function showSection(section) {
+    [
+        "currentSection",
+        "waitingSection",
+        "historySection",
+        "profileSection"
+    ].forEach(id => {
+        document.getElementById(id)?.classList.add("hidden");
+    });
 
-document.addEventListener(
-    "DOMContentLoaded",
-    async () => {
+    const sections = {
+        current: ["currentSection", "Текущий заказ", "Управление вашим активным заказом"],
+        waiting: ["waitingSection", "Доступные заказы", "Выберите заказ для доставки"],
+        history: ["historySection", "История доставок", "Выполненные заказы"]
+    };
 
-        renderUserInfo();
-
-        await fetchCourierStatus();
-        await fetchTodayStats();
-        await fetchCurrentDelivery();
+    if (section === "profile") {
+        showProfile(api);
+        updateNavigation(section);
+        return;
     }
-);
 
+    const [sectionId, title, subtitle] = sections[section] || sections.current;
 
-// User actions
+    document.getElementById(sectionId)?.classList.remove("hidden");
+    updatePageHeader(title, subtitle);
+    updateNavigation(section);
 
-document.addEventListener(
-    "click",
-    async event => {
-
-
-        const navItem = event.target.closest(".nav-item");
-
-        if (navItem) {
-            const section = navItem.dataset.section;
-
-            if (!section) return;
-
-            showSection(section);
-
-            if (section === "current") {
-                await fetchCurrentDelivery();
-            }
-
-            if (section === "waiting") {
-                await fetchWaitingDeliveries();
-            }
-
-            if (section === "history") {
-                await fetchHistoryDeliveries();
-            }
-
-            return;
-        }
-
-
-        // Online / Offline
-
-        if (event.target.closest("#statusToggleButton")) {
-            if (state.courierStatus === "OFFLINE") {
-                await goOnline();
-            } else {
-                await goOffline();
-            }
-
-            return;
-        }
-
-
-        // Accept delivery
-
-        const acceptButton = event.target.closest(".accept-btn");
-
-        if (acceptButton) {
-            const orderId = acceptButton.dataset.orderId;
-
-            if (orderId) {
-                await acceptDelivery(orderId);
-            }
-
-            return;
-        }
-
-
-        // Pickup
-
-        if (event.target.closest("#pickupButton")) {
-            if (state.currentDelivery) {
-                await pickUpOrder(state.currentDelivery.orderId);
-            }
-
-            return;
-        }
-
-
-        // Complete
-
-        if (event.target.closest("#completeButton")) {
-            if (state.currentDelivery) {
-                await completeDelivery(state.currentDelivery.orderId);
-            }
-
-            return;
-        }
-
-
-        // Go to waiting
-
-        if (event.target.closest("#goToWaitingButton")) {
-            showSection("waiting");
-            await fetchWaitingDeliveries();
-            return;
-        }
-
-
-        // Refresh waiting
-
-        if (event.target.closest("#refreshWaitingButton")) {
-            await fetchWaitingDeliveries();
-            return;
-        }
-
-
-        // Refresh history
-
-        if (event.target.closest("#refreshHistoryButton")) {
-            await fetchHistoryDeliveries();
-            return;
-        }
-
-
-        // Logout
-
-        if (event.target.closest("#logoutButton")) {
-            const canLogout = await validateLogout();
-
-            if (canLogout) {
-                await logout();
-            }
-        }
+    if (section === "current") {
+        fetchCurrentDelivery();
     }
-);
 
-document.addEventListener("profile-logout", async () => {
-    const canLogout = await validateLogout();
+    if (section === "waiting") {
+        fetchWaitingDeliveries();
+    }
 
-    if (canLogout) {
+    if (section === "history") {
+        fetchHistoryDeliveries();
+    }
+}
+
+function updateNavigation(section) {
+    document.querySelectorAll(".nav-item").forEach(item => {
+        item.classList.toggle("active", item.dataset.section === section);
+    });
+}
+
+function updatePageHeader(title, subtitle) {
+    const titleElement = document.getElementById("pageTitle");
+    const subtitleElement = document.getElementById("pageSubtitle");
+
+    if (titleElement) {
+        titleElement.textContent = title;
+    }
+
+    if (subtitleElement) {
+        subtitleElement.textContent = subtitle;
+    }
+}
+
+async function logout() {
+    try {
+        await api.logout();
+    } catch {}
+
+    finally {
+        window.location.href = "/";
+    }
+}
+
+
+async function handleLogout() {
+    try {
+        await api.validateLogout();
         await logout();
+    } catch (error) {
+        showError(error.message);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        const profile = await api.getProfile();
+        const emailElement = document.getElementById("userEmail");
+
+        if (emailElement) {
+            emailElement.textContent = profile?.email || "Курьер";
+        }
+    } catch {}
+
+    await Promise.all([
+        fetchCourierStatus(),
+        fetchTodayStats(),
+        fetchCurrentDelivery()
+    ]);
+});
+
+document.addEventListener("click", async event => {
+    const navItem = event.target.closest(".nav-item");
+
+    if (navItem) {
+        const section = navItem.dataset.section;
+
+        if (section) {
+            showSection(section);
+        }
+
+        return;
+    }
+
+    if (event.target.closest("#statusToggleButton")) {
+        await toggleCourierStatus();
+        return;
+    }
+
+    const acceptButton = event.target.closest(".accept-btn");
+
+    if (acceptButton) {
+        const orderId = acceptButton.dataset.orderId;
+
+        if (orderId) {
+            if (await acceptDelivery(orderId)) {
+                showSection("current");
+            }
+        }
+
+        return;
+    }
+
+    if (event.target.closest("#pickupButton")) {
+        if (state.currentDelivery) {
+            await pickUpOrder(state.currentDelivery.orderId);
+        }
+
+        return;
+    }
+
+    if (event.target.closest("#completeButton")) {
+        if (state.currentDelivery) {
+            await completeDelivery(state.currentDelivery.orderId);
+        }
+
+        return;
+    }
+
+    if (event.target.closest("#goToWaitingButton")) {
+        showSection("waiting");
+        return;
+    }
+
+    if (event.target.closest("#refreshWaitingButton")) {
+        await fetchWaitingDeliveries();
+        return;
+    }
+
+    if (event.target.closest("#refreshHistoryButton")) {
+        await fetchHistoryDeliveries();
+        return;
+    }
+
+    if (event.target.closest("#logoutButton")) {
+        await handleLogout();
     }
 });
+
+document.addEventListener("profile-logout", handleLogout);

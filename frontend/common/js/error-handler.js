@@ -1,10 +1,7 @@
 const ERROR_TRANSLATIONS = {
-    // Authentication
     "Authentication required": "Требуется авторизация",
     "Access denied": "Доступ запрещён",
     "Invalid email or password": "Неверный email или пароль",
-
-    // Registration / validation
     "Passwords do not match": "Пароли не совпадают",
     "Email cannot be empty": "Email не может быть пустым",
     "Incorrect format email": "Некорректный формат email",
@@ -16,21 +13,11 @@ const ERROR_TRANSLATIONS = {
     "Transport type cannot be empty": "Тип транспорта не может быть пустым",
     "Validation failed": "Проверьте правильность введённых данных",
     "Invalid password": "Неверный пароль",
-
-    // Users
     "User not found": "Пользователь не найден",
-
-    // Courier
     "Courier is not available.": "Курьер сейчас недоступен.",
     "Courier not found": "Курьер не найден",
-
-    // Orders
     "Order not found": "Заказ не найден",
-
-    // Payments
     "Payment not found": "Платёж не найден",
-
-    // Deliveries
     "Delivery not found": "Доставка не найдена",
     "Delivery has already been accepted.": "Эта доставка уже была принята.",
     "Cannot logout while courier is online or has an active delivery!": "Нельзя выйти из аккаунта, пока курьер находится на линии или выполняет доставку.",
@@ -53,10 +40,10 @@ export async function getErrorMessage(response) {
         return translateError(data.message);
     }
 
-    return getDefaultErrorMessage(response.status);
+    return DEFAULT_ERROR_MESSAGES[response.status] || "Произошла неизвестная ошибка.";
 }
 
-export function translateError(message) {
+function translateError(message) {
     if (!message) {
         return "Произошла ошибка";
     }
@@ -70,8 +57,4 @@ export function translateError(message) {
     }
 
     return message;
-}
-
-function getDefaultErrorMessage(status) {
-    return DEFAULT_ERROR_MESSAGES[status] || "Произошла неизвестная ошибка.";
 }
