@@ -3,14 +3,11 @@ import {
 } from "./api.js";
 
 import {
-    escapeHtml
-} from "../../common/js/utils.js";
-
-import {
     formatPrice,
     getRussianItemWord,
-    buildImageUrl
-} from "./utils.js";
+    buildImageUrl,
+    escapeHtml
+} from "../../common/js/utils.js";
 
 import {
     addToCart
@@ -209,21 +206,13 @@ function createMenuCard(item) {
     card.innerHTML = `
         <div class="menu-card-image">
             ${imageUrl ? `
-                <img
-                    src="${escapeHtml(imageUrl)}"
-                    alt="${escapeHtml(item.name)}"
-                    loading="lazy"
-                >
-            ` : `
-                <div class="image-placeholder">🍽️</div>
-            `}
+                <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(item.name)}" loading="lazy">` : `
+                <div class="image-placeholder">🍽️</div>`}
         </div>
 
         <div class="menu-card-content">
             <span class="menu-card-category">
-                ${escapeHtml(
-        item.categoryTitle || getCategoryTitle(item.category)
-    )}
+                ${escapeHtml(item.categoryTitle || getCategoryTitle(item.category))}
             </span>
 
             <h3 class="menu-card-title">
@@ -256,8 +245,7 @@ function createMenuCard(item) {
 
             if (imageContainer) {
                 imageContainer.classList.add("image-error");
-                imageContainer.innerHTML =
-                    '<span class="image-error-text">Изображение недоступно</span>';
+                imageContainer.innerHTML = '<span class="image-error-text">Изображение недоступно</span>';
             }
         });
     }
@@ -308,11 +296,7 @@ function showMenuError(message) {
             <h3>Не удалось загрузить меню</h3>
             <p>${escapeHtml(message)}</p>
 
-            <button
-                type="button"
-                class="primary-button"
-                id="retryMenuButton"
-            >
+            <button type="button" class="primary-button" id="retryMenuButton">
                 Повторить попытку
             </button>
         </div>

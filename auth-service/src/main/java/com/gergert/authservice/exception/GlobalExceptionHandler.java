@@ -47,6 +47,16 @@ public class GlobalExceptionHandler {
                 null);
     }
 
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleUserNotFound(UserNotFoundException exception) {
+
+        return buildResponse(
+                HttpStatus.NOT_FOUND,
+                exception.getMessage(),
+                null
+        );
+    }
+
     @ExceptionHandler(InvalidPasswordException.class)
     public ResponseEntity<ErrorResponseDto> handleInvalidPasswordException(
             InvalidPasswordException exception) {
@@ -65,6 +75,27 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST,
                 exception.getMessage(),
                 null);
+    }
+
+    @ExceptionHandler(InvalidRoleChangeException.class)
+    public ResponseEntity<ErrorResponseDto> handleInvalidRoleChangeException(InvalidRoleChangeException exception) {
+
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
+                exception.getMessage(),
+                null
+        );
+    }
+
+
+    @ExceptionHandler(LastAdminException.class)
+    public ResponseEntity<ErrorResponseDto> handleLastAdminException(LastAdminException exception) {
+
+        return buildResponse(
+                HttpStatus.CONFLICT,
+                exception.getMessage(),
+                null
+        );
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

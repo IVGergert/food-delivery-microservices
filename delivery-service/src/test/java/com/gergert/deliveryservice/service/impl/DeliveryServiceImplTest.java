@@ -1,8 +1,8 @@
 package com.gergert.deliveryservice.service.impl;
 
 import com.gergert.common.dto.kafka.DeliveryAssignedEventDto;
-import com.gergert.common.dto.kafka.OrderDeliveredEventDto;
 import com.gergert.common.dto.kafka.OrderCancelledEventDto;
+import com.gergert.common.dto.kafka.OrderDeliveredEventDto;
 import com.gergert.common.dto.kafka.OrderPaidEventDto;
 import com.gergert.common.dto.kafka.OrderPickedUpEventDto;
 import com.gergert.deliveryservice.dto.CourierStatisticsResponseDto;
@@ -92,7 +92,8 @@ class DeliveryServiceImplTest {
         courier = Courier.builder()
                 .id(7L)
                 .userId(100L)
-                .name("Alex")
+                .firstName("Alex")
+                .lastName("Smith")
                 .courierStatus(CourierStatus.AVAILABLE)
                 .transportType(TransportType.CAR)
                 .build();
@@ -132,8 +133,7 @@ class DeliveryServiceImplTest {
 
         service.createDelivery(event);
 
-        ArgumentCaptor<Delivery> captor =
-                ArgumentCaptor.forClass(Delivery.class);
+        ArgumentCaptor<Delivery> captor = ArgumentCaptor.forClass(Delivery.class);
 
         verify(deliveryRepository).save(captor.capture());
 
@@ -176,12 +176,15 @@ class DeliveryServiceImplTest {
         when(deliveryRepository.findByOrderId(50L))
                 .thenReturn(Optional.of(delivery));
 
-        service.cancelDelivery(new OrderCancelledEventDto(50L));
+        service.cancelDelivery(
+                new OrderCancelledEventDto(50L)
+        );
 
         assertThat(delivery.getDeliveryStatus())
                 .isEqualTo(DeliveryStatus.CANCELLED);
 
-        verify(deliveryRepository).save(delivery);
+        verify(deliveryRepository)
+                .save(delivery);
     }
 
     @Test
@@ -189,7 +192,9 @@ class DeliveryServiceImplTest {
         when(deliveryRepository.findByOrderId(50L))
                 .thenReturn(Optional.empty());
 
-        service.cancelDelivery(new OrderCancelledEventDto(50L));
+        service.cancelDelivery(
+                new OrderCancelledEventDto(50L)
+        );
 
         verify(deliveryRepository, never())
                 .save(any(Delivery.class));
@@ -221,7 +226,9 @@ class DeliveryServiceImplTest {
                 .isEqualTo(DeliveryStatus.COURIER_ASSIGNED);
 
         assertThat(courier.getCourierStatus())
-                .isEqualTo(CourierStatus.ON_THE_WAY_TO_RESTAURANT);
+                .isEqualTo(
+                        CourierStatus.ON_THE_WAY_TO_RESTAURANT
+                );
 
         verify(deliveryRepository)
                 .save(delivery);
@@ -249,9 +256,15 @@ class DeliveryServiceImplTest {
         when(deliveryRepository.findByOrderId(50L))
                 .thenReturn(Optional.of(delivery));
 
-        assertThatThrownBy(() -> service.acceptDelivery(50L, 100L))
-                .isInstanceOf(InvalidDeliveryStatusException.class)
-                .hasMessage("Delivery has already been accepted.");
+        assertThatThrownBy(
+                () -> service.acceptDelivery(50L, 100L)
+        )
+                .isInstanceOf(
+                        InvalidDeliveryStatusException.class
+                )
+                .hasMessage(
+                        "Delivery has already been accepted."
+                );
 
         verifyNoInteractions(courierRepository);
         verifyNoInteractions(kafkaTemplate);
@@ -270,8 +283,12 @@ class DeliveryServiceImplTest {
         when(courierRepository.findByUserId(100L))
                 .thenReturn(Optional.of(courier));
 
-        assertThatThrownBy(() -> service.acceptDelivery(50L, 100L))
-                .isInstanceOf(CourierNotAvailableException.class)
+        assertThatThrownBy(
+                () -> service.acceptDelivery(50L, 100L)
+        )
+                .isInstanceOf(
+                        CourierNotAvailableException.class
+                )
                 .hasMessage("Courier is not available.");
 
         verify(deliveryRepository, never())
@@ -289,9 +306,15 @@ class DeliveryServiceImplTest {
         when(deliveryRepository.findByOrderId(50L))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.acceptDelivery(50L, 100L))
-                .isInstanceOf(DeliveryNotFoundException.class)
-                .hasMessage("Delivery not found for orderId=50");
+        assertThatThrownBy(
+                () -> service.acceptDelivery(50L, 100L)
+        )
+                .isInstanceOf(
+                        DeliveryNotFoundException.class
+                )
+                .hasMessage(
+                        "Delivery not found for orderId=50"
+                );
 
         verifyNoInteractions(courierRepository);
         verifyNoInteractions(kafkaTemplate);
@@ -307,8 +330,11 @@ class DeliveryServiceImplTest {
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(
-                () -> service.acceptDelivery(50L, 100L))
-                .isInstanceOf(CourierNotFoundException.class)
+                () -> service.acceptDelivery(50L, 100L)
+        )
+                .isInstanceOf(
+                        CourierNotFoundException.class
+                )
                 .hasMessage("Courier not found.");
 
         verify(deliveryRepository, never())
@@ -344,7 +370,9 @@ class DeliveryServiceImplTest {
                 .isEqualTo(DeliveryStatus.PICKED_UP);
 
         assertThat(courier.getCourierStatus())
-                .isEqualTo(CourierStatus.ON_THE_WAY_TO_CUSTOMER);
+                .isEqualTo(
+                        CourierStatus.ON_THE_WAY_TO_CUSTOMER
+                );
 
         verify(deliveryRepository)
                 .save(delivery);
@@ -374,9 +402,15 @@ class DeliveryServiceImplTest {
         when(deliveryRepository.findByOrderId(50L))
                 .thenReturn(Optional.of(delivery));
 
-        assertThatThrownBy(() -> service.pickUpOrder(50L, 999L))
-                .isInstanceOf(DeliveryAccessDeniedException.class)
-                .hasMessage("You cannot access someone else's delivery!");
+        assertThatThrownBy(
+                () -> service.pickUpOrder(50L, 999L)
+        )
+                .isInstanceOf(
+                        DeliveryAccessDeniedException.class
+                )
+                .hasMessage(
+                        "You cannot access someone else's delivery!"
+                );
 
         verify(deliveryRepository, never())
                 .save(any(Delivery.class));
@@ -396,9 +430,14 @@ class DeliveryServiceImplTest {
                 .thenReturn(Optional.of(delivery));
 
         assertThatThrownBy(
-                () -> service.pickUpOrder(50L, 100L))
-                .isInstanceOf(InvalidDeliveryStatusException.class)
-                .hasMessage("Cannot pick up order with status: WAITING_FOR_COURIER");
+                () -> service.pickUpOrder(50L, 100L)
+        )
+                .isInstanceOf(
+                        InvalidDeliveryStatusException.class
+                )
+                .hasMessage(
+                        "Cannot pick up order with status: WAITING_FOR_COURIER"
+                );
 
         verify(deliveryRepository, never())
                 .save(any(Delivery.class));
@@ -420,9 +459,14 @@ class DeliveryServiceImplTest {
                 .thenReturn(Optional.of(delivery));
 
         assertThatThrownBy(
-                () -> service.pickUpOrder(50L, 100L))
-                .isInstanceOf(DeliveryAccessDeniedException.class)
-                .hasMessage("You cannot access someone else's delivery!");
+                () -> service.pickUpOrder(50L, 100L)
+        )
+                .isInstanceOf(
+                        DeliveryAccessDeniedException.class
+                )
+                .hasMessage(
+                        "You cannot access someone else's delivery!"
+                );
 
         verify(deliveryRepository, never())
                 .save(any(Delivery.class));
@@ -439,8 +483,12 @@ class DeliveryServiceImplTest {
         when(deliveryRepository.findByOrderId(50L))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.pickUpOrder(50L, 100L))
-                .isInstanceOf(DeliveryNotFoundException.class);
+        assertThatThrownBy(
+                () -> service.pickUpOrder(50L, 100L)
+        )
+                .isInstanceOf(
+                        DeliveryNotFoundException.class
+                );
 
         verifyNoInteractions(courierRepository);
         verifyNoInteractions(kafkaTemplate);
@@ -507,9 +555,14 @@ class DeliveryServiceImplTest {
                 .thenReturn(Optional.of(delivery));
 
         assertThatThrownBy(
-                () -> service.completeDelivery(50L, 999L))
-                .isInstanceOf(DeliveryAccessDeniedException.class)
-                .hasMessage("You cannot access someone else's delivery!");
+                () -> service.completeDelivery(50L, 999L)
+        )
+                .isInstanceOf(
+                        DeliveryAccessDeniedException.class
+                )
+                .hasMessage(
+                        "You cannot access someone else's delivery!"
+                );
 
         verify(deliveryRepository, never())
                 .save(any(Delivery.class));
@@ -529,9 +582,14 @@ class DeliveryServiceImplTest {
                 .thenReturn(Optional.of(delivery));
 
         assertThatThrownBy(
-                () -> service.completeDelivery(50L, 100L))
-                .isInstanceOf(InvalidDeliveryStatusException.class)
-                .hasMessage("Cannot complete delivery before picking up order from restaurant!");
+                () -> service.completeDelivery(50L, 100L)
+        )
+                .isInstanceOf(
+                        InvalidDeliveryStatusException.class
+                )
+                .hasMessage(
+                        "Cannot complete delivery before picking up order from restaurant!"
+                );
 
         verify(deliveryRepository, never())
                 .save(any(Delivery.class));
@@ -548,8 +606,12 @@ class DeliveryServiceImplTest {
         when(deliveryRepository.findByOrderId(50L))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.completeDelivery(50L, 100L))
-                .isInstanceOf(DeliveryNotFoundException.class);
+        assertThatThrownBy(
+                () -> service.completeDelivery(50L, 100L)
+        )
+                .isInstanceOf(
+                        DeliveryNotFoundException.class
+                );
 
         verifyNoInteractions(courierRepository);
         verifyNoInteractions(kafkaTemplate);
@@ -566,10 +628,14 @@ class DeliveryServiceImplTest {
 
         delivery.setCourier(courier);
 
-        when(deliveryRepository.findFirstByCourier_UserIdAndDeliveryStatusIn(
+        when(
+                deliveryRepository
+                        .findFirstByCourier_UserIdAndDeliveryStatusIn(
                                 eq(100L),
                                 anySet()
-                        )).thenReturn(Optional.of(delivery));
+                        )
+        )
+                .thenReturn(Optional.of(delivery));
 
         when(deliveryMapper.toDeliveryDto(delivery))
                 .thenReturn(response);
@@ -642,7 +708,9 @@ class DeliveryServiceImplTest {
                         .build();
 
         when(deliveryRepository.findAllByCourier_UserId(100L))
-                .thenReturn(List.of(delivery, secondDelivery));
+                .thenReturn(
+                        List.of(delivery, secondDelivery)
+                );
 
         when(deliveryMapper.toDeliveryDto(delivery))
                 .thenReturn(response);
@@ -654,7 +722,10 @@ class DeliveryServiceImplTest {
                 service.getDeliveriesByCourierUserId(100L);
 
         assertThat(result)
-                .containsExactly(response, secondResponse);
+                .containsExactly(
+                        response,
+                        secondResponse
+                );
 
         verify(deliveryMapper)
                 .toDeliveryDto(delivery);
@@ -707,9 +778,14 @@ class DeliveryServiceImplTest {
                 .thenReturn(Optional.of(delivery));
 
         assertThatThrownBy(
-                () -> service.getDeliveryByOrderId(50L, 999L))
-                .isInstanceOf(DeliveryAccessDeniedException.class)
-                .hasMessage("You cannot access someone else's delivery!");
+                () -> service.getDeliveryByOrderId(50L, 999L)
+        )
+                .isInstanceOf(
+                        DeliveryAccessDeniedException.class
+                )
+                .hasMessage(
+                        "You cannot access someone else's delivery!"
+                );
 
         verifyNoInteractions(deliveryMapper);
     }
@@ -720,9 +796,14 @@ class DeliveryServiceImplTest {
                 .thenReturn(Optional.of(delivery));
 
         assertThatThrownBy(
-                () -> service.getDeliveryByOrderId(50L, 100L))
-                .isInstanceOf(DeliveryAccessDeniedException.class)
-                .hasMessage("You cannot access someone else's delivery!");
+                () -> service.getDeliveryByOrderId(50L, 100L)
+        )
+                .isInstanceOf(
+                        DeliveryAccessDeniedException.class
+                )
+                .hasMessage(
+                        "You cannot access someone else's delivery!"
+                );
 
         verifyNoInteractions(deliveryMapper);
     }
@@ -732,8 +813,12 @@ class DeliveryServiceImplTest {
         when(deliveryRepository.findByOrderId(50L))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.getDeliveryByOrderId(50L, 100L))
-                .isInstanceOf(DeliveryNotFoundException.class);
+        assertThatThrownBy(
+                () -> service.getDeliveryByOrderId(50L, 100L)
+        )
+                .isInstanceOf(
+                        DeliveryNotFoundException.class
+                );
 
         verifyNoInteractions(deliveryMapper);
     }
@@ -745,7 +830,11 @@ class DeliveryServiceImplTest {
         when(courierRepository.findByUserId(100L))
                 .thenReturn(Optional.of(courier));
 
-        when(deliveryRepository.findAllByDeliveryStatus(DeliveryStatus.WAITING_FOR_COURIER))
+        when(
+                deliveryRepository.findAllByDeliveryStatus(
+                        DeliveryStatus.WAITING_FOR_COURIER
+                )
+        )
                 .thenReturn(List.of(delivery));
 
         when(deliveryMapper.toDeliveryDto(delivery))
@@ -758,7 +847,9 @@ class DeliveryServiceImplTest {
                 .containsExactly(response);
 
         verify(deliveryRepository)
-                .findAllByDeliveryStatus(DeliveryStatus.WAITING_FOR_COURIER);
+                .findAllByDeliveryStatus(
+                        DeliveryStatus.WAITING_FOR_COURIER
+                );
 
         verify(deliveryMapper)
                 .toDeliveryDto(delivery);
@@ -773,12 +864,21 @@ class DeliveryServiceImplTest {
         when(courierRepository.findByUserId(100L))
                 .thenReturn(Optional.of(courier));
 
-        assertThatThrownBy(() -> service.getWaitingDeliveries(100L))
-                .isInstanceOf(CourierNotAvailableException.class)
+        assertThatThrownBy(
+                () -> service.getWaitingDeliveries(100L)
+        )
+                .isInstanceOf(
+                        CourierNotAvailableException.class
+                )
                 .hasMessage("Courier is not available.");
 
-        verify(deliveryRepository, never())
-                .findAllByDeliveryStatus(any(DeliveryStatus.class));
+        verify(
+                deliveryRepository,
+                never()
+        )
+                .findAllByDeliveryStatus(
+                        any(DeliveryStatus.class)
+                );
 
         verifyNoInteractions(deliveryMapper);
     }
@@ -789,12 +889,20 @@ class DeliveryServiceImplTest {
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(
-                () -> service.getWaitingDeliveries(100L))
-                .isInstanceOf(CourierNotFoundException.class)
+                () -> service.getWaitingDeliveries(100L)
+        )
+                .isInstanceOf(
+                        CourierNotFoundException.class
+                )
                 .hasMessage("Courier not found.");
 
-        verify(deliveryRepository, never())
-                .findAllByDeliveryStatus(any(DeliveryStatus.class));
+        verify(
+                deliveryRepository,
+                never()
+        )
+                .findAllByDeliveryStatus(
+                        any(DeliveryStatus.class)
+                );
 
         verifyNoInteractions(deliveryMapper);
     }
@@ -806,11 +914,15 @@ class DeliveryServiceImplTest {
         when(courierRepository.findByUserId(100L))
                 .thenReturn(Optional.of(courier));
 
-        when(deliveryRepository.countByCourier_UserIdAndCompletedAtBetween(
+        when(
+                deliveryRepository
+                        .countByCourier_UserIdAndCompletedAtBetween(
                                 eq(100L),
                                 any(LocalDateTime.class),
                                 any(LocalDateTime.class)
-        )).thenReturn(3L);
+                        )
+        )
+                .thenReturn(3L);
 
         CourierStatisticsResponseDto result =
                 service.getCompletedDeliveriesToday(100L);
@@ -818,7 +930,8 @@ class DeliveryServiceImplTest {
         assertThat(result.completedToday())
                 .isEqualTo(3L);
 
-        verify(deliveryRepository).countByCourier_UserIdAndCompletedAtBetween(
+        verify(deliveryRepository)
+                .countByCourier_UserIdAndCompletedAtBetween(
                         eq(100L),
                         any(LocalDateTime.class),
                         any(LocalDateTime.class)
@@ -830,11 +943,12 @@ class DeliveryServiceImplTest {
         when(courierRepository.findByUserId(100L))
                 .thenReturn(Optional.of(courier));
 
-        when(deliveryRepository.countByCourier_UserIdAndCompletedAtBetween(
+        when(deliveryRepository
+                .countByCourier_UserIdAndCompletedAtBetween(
                                 eq(100L),
                                 any(LocalDateTime.class),
-                                any(LocalDateTime.class)
-        )).thenReturn(0L);
+                                any(LocalDateTime.class)))
+                .thenReturn(0L);
 
         CourierStatisticsResponseDto result =
                 service.getCompletedDeliveriesToday(100L);
@@ -849,7 +963,9 @@ class DeliveryServiceImplTest {
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.getCompletedDeliveriesToday(100L))
-                .isInstanceOf(CourierNotFoundException.class)
+                .isInstanceOf(
+                        CourierNotFoundException.class
+                )
                 .hasMessage("Courier not found.");
 
         verify(deliveryRepository, never())

@@ -2,10 +2,9 @@ package com.gergert.authservice.dto.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public record CreateCourierRequestDto(
+public record CreateAdminRequestDto(
         @NotBlank(message = "Email cannot be empty")
         @Email(message = "Incorrect format email")
         String email,
@@ -22,13 +21,5 @@ public record CreateCourierRequestDto(
         String firstName,
 
         @NotBlank(message = "Last name cannot be empty")
-        String lastName,
-
-        @NotBlank(message = "Transport type cannot be empty")
-        @Pattern(
-                regexp = "BICYCLE|CAR|ON_FOOT",
-                message = "Transport type must be BICYCLE, CAR or ON_FOOT"
-        )
-        String transportType
-) {
-}
+        String lastName
+) {}

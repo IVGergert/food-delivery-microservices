@@ -1,5 +1,6 @@
 package com.gergert.authservice.service.impl;
 
+import com.gergert.authservice.dto.UserMapper;
 import com.gergert.authservice.dto.user.ChangeEmailRequestDto;
 import com.gergert.authservice.dto.user.ChangePasswordRequestDto;
 import com.gergert.authservice.dto.user.UpdateProfileRequestDto;
@@ -8,11 +9,14 @@ import com.gergert.authservice.entity.User;
 import com.gergert.authservice.exception.InvalidPasswordException;
 import com.gergert.authservice.exception.PasswordMismatchException;
 import com.gergert.authservice.exception.UserAlreadyExistsException;
+import com.gergert.authservice.exception.UserNotFoundException;
+import com.gergert.authservice.kafka.CourierUpdatedEventProducer;
 import com.gergert.authservice.repository.UserRepository;
 import com.gergert.authservice.service.UserService;
+import com.gergert.common.dto.kafka.CourierUpdatedEventDto;
+import com.gergert.common.enums.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,13 +26,16 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper mapper;
+
+    private final CourierUpdatedEventProducer courierUpdatedEventProducer;
 
     @Override
     public UserResponseDto getProfile(Long userId) {
         log.info("Getting profile for userId={}", userId);
 
         User user = findUserById(userId);
-        return mapToResponse(user);
+        return mapper.toUserDto(user);
     }
 
     @Override
@@ -40,9 +47,20 @@ public class UserServiceImpl implements UserService {
         user.setLastName(requestDto.lastName());
 
         User savedUser = userRepository.save(user);
+
+        if (savedUser.getRole() == Role.ROLE_COURIER) {
+            courierUpdatedEventProducer.send(
+                    new CourierUpdatedEventDto(
+                            savedUser.getId(),
+                            savedUser.getFirstName(),
+                            savedUser.getLastName()
+                    )
+            );
+        }
+
         log.info("Profile updated for userId={}", userId);
 
-        return mapToResponse(savedUser);
+        return mapper.toUserDto(savedUser);
     }
 
     @Override
@@ -90,19 +108,8 @@ public class UserServiceImpl implements UserService {
     private User findUserById(Long userId) {
 
         return userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException(
+                .orElseThrow(() -> new UserNotFoundException(
                         "User with userId " + userId + " not found"));
 
     }
-
-    private UserResponseDto mapToResponse(User user) {
-        return UserResponseDto.builder()
-                .userId(user.getId())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .role(user.getRole())
-                .build();
-    }
-
 }

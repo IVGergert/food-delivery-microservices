@@ -9,14 +9,12 @@ import {
 } from "../../common/js/notifications.js";
 
 import {
+    formatPrice,
+    buildImageUrl,
+    getRussianItemWord,
     escapeHtml
 } from "../../common/js/utils.js";
 
-import {
-    formatPrice,
-    buildImageUrl,
-    getRussianItemWord
-} from "./utils.js";
 
 import {
     loadMyOrders

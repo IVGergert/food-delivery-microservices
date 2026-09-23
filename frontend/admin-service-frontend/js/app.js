@@ -1,91 +1,149 @@
 import * as api from "./api.js";
 
-const SECTION_INFO = {
-    menu: ["Меню", "Управление меню ресторана"],
-    users: ["Пользователи", "Управление пользователями"],
-    couriers: ["Курьеры", "Управление курьерами"],
-    orders: ["Заказы", "Управление заказами"],
-    statistics: ["Статистика", "Статистика доставки и заказов"]
+import {
+    loadUsers,
+    closeAdminModals
+} from "./admin.js";
+
+import {
+    showProfile
+} from "../../common/js/profile.js";
+
+import {
+    showError
+} from "../../common/js/notifications.js";
+
+import {
+    updateNavigation,
+    updatePageHeader
+} from "../../common/js/layout.js";
+
+
+const SECTIONS = {
+    users: {
+        id: "usersSection",
+        title: "Пользователи",
+        subtitle: "Управление пользователями системы"
+    }
 };
 
-async function loadProfile() {
-    try {
-        const profile = await api.getProfile();
-        const emailElement = document.getElementById("userEmail");
 
-        if (emailElement) {
-            emailElement.textContent = profile?.email || "Администратор";
-        }
-    } catch {
-        const emailElement = document.getElementById("userEmail");
-
-        if (emailElement) {
-            emailElement.textContent = "Администратор";
-        }
-    }
+function hideSections() {
+    [
+        "usersSection",
+        "profileSection"
+    ].forEach(id => {
+        document.getElementById(id)
+            ?.classList.add("hidden");
+    });
 }
 
-function showSection(section) {
-    const [title, description] =
-        SECTION_INFO[section] || SECTION_INFO.menu;
 
-    document.getElementById("pageTitle").textContent = title;
-    document.getElementById("pageDescription").textContent = description;
+async function showSection(section) {
+    hideSections();
 
-    document.querySelectorAll(".nav-item").forEach(item => {
-        item.classList.toggle(
-            "active",
-            item.dataset.section === section
-        );
-    });
-
-    const content = document.getElementById("content");
-
-    if (!content) {
+    if (section === "profile") {
+        updateNavigation("profile");
+        await showProfile(api);
         return;
     }
 
-    content.innerHTML = `
-        <div class="empty-state">
-            <div class="empty-state-icon">${getSectionIcon(section)}</div>
-            <h2>${title}</h2>
-            <p>${description}.</p>
-        </div>
-    `;
+    const config =
+        SECTIONS[section]
+        || SECTIONS.users;
+
+    document.getElementById(config.id)
+        ?.classList.remove("hidden");
+
+    updateNavigation(section);
+
+    updatePageHeader(
+        config.title,
+        config.subtitle
+    );
+
+    if (section === "users") {
+        await loadUsers();
+    }
 }
 
-function getSectionIcon(section) {
-    return {
-        menu: "🍕",
-        users: "👥",
-        couriers: "🚴",
-        orders: "📦",
-        statistics: "📊"
-    }[section] || "📋";
-}
 
-async function logout() {
+async function handleLogout() {
     try {
         await api.logout();
-    } finally {
+    } catch {} finally {
         window.location.href = "/";
     }
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
-    await loadProfile();
-    showSection("menu");
-});
 
-document.addEventListener("click", async event => {
-    const navItem = event.target.closest(".nav-item");
+async function initializePage() {
+    try {
+        const profile =
+            await api.getProfile();
 
-    if (navItem?.dataset.section) {
-        showSection(navItem.dataset.section);
+        const emailElement =
+            document.getElementById("userEmail");
+
+        if (emailElement) {
+            emailElement.textContent = profile?.email || "Пользователь";
+        }
+
+    } catch (error) {
+        showError(error.message || "Не удалось загрузить профиль");
         return;
     }
 
-    if (event.target.closest("#logoutButton")) {
-        await logout();
+    await showSection("users");
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    initializePage
+);
+
+
+document.addEventListener(
+    "click",
+    async event => {
+
+        const navItem =
+            event.target.closest(".nav-item");
+
+        if (navItem) {
+
+            const section =
+                navItem.dataset.section;
+
+            if (section) {
+                await showSection(section);
+            }
+
+            return;
+        }
+
+        if (
+            event.target.closest("#logoutButton")
+        ) {
+            await handleLogout();
+        }
     }
-});
+);
+
+
+document.addEventListener(
+    "profile-logout",
+    handleLogout
+);
+
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (event.key === "Escape") {
+            closeAdminModals();
+        }
+    }
+);

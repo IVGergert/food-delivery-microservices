@@ -1,14 +1,10 @@
 package com.gergert.orderservice.controller;
 
 import com.gergert.orderservice.dto.MenuItemDto;
-import com.gergert.orderservice.dto.MenuMapper;
 import com.gergert.orderservice.service.MenuService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -27,5 +23,4 @@ public class MenuController {
     public ResponseEntity<MenuItemDto> getById(@PathVariable Long id) {
         return ResponseEntity.ok(menuService.getItemById(id));
     }
-
 }

@@ -32,6 +32,7 @@ class CourierCreatedListenerTest {
                 10L,
                 "alex@example.com",
                 "Alex",
+                "Smith",
                 "CAR"
         );
 
@@ -40,15 +41,28 @@ class CourierCreatedListenerTest {
 
         listener.handle(event);
 
-        ArgumentCaptor<Courier> captor = ArgumentCaptor.forClass(Courier.class);
-        verify(courierRepository).save(captor.capture());
+        ArgumentCaptor<Courier> captor =
+                ArgumentCaptor.forClass(Courier.class);
+
+        verify(courierRepository)
+                .save(captor.capture());
 
         Courier saved = captor.getValue();
 
-        assertThat(saved.getUserId()).isEqualTo(10L);
-        assertThat(saved.getName()).isEqualTo("Alex");
-        assertThat(saved.getTransportType()).isEqualTo(TransportType.CAR);
-        assertThat(saved.getCourierStatus()).isEqualTo(CourierStatus.OFFLINE);
+        assertThat(saved.getUserId())
+                .isEqualTo(10L);
+
+        assertThat(saved.getFirstName())
+                .isEqualTo("Alex");
+
+        assertThat(saved.getLastName())
+                .isEqualTo("Smith");
+
+        assertThat(saved.getTransportType())
+                .isEqualTo(TransportType.CAR);
+
+        assertThat(saved.getCourierStatus())
+                .isEqualTo(CourierStatus.OFFLINE);
     }
 
     @Test
@@ -57,11 +71,18 @@ class CourierCreatedListenerTest {
                 10L,
                 "alex@example.com",
                 "Alex",
+                "Smith",
                 "CAR"
         );
 
-        when(courierRepository.findByUserId(10L))
-                .thenReturn(Optional.of(Courier.builder().id(1L).userId(10L).build()));
+        when(courierRepository.findByUserId(10L)).thenReturn(
+                        Optional.of(
+                                Courier.builder()
+                                        .id(1L)
+                                        .userId(10L)
+                                        .build()
+                        )
+                );
 
         listener.handle(event);
 

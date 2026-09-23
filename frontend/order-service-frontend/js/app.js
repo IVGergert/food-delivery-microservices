@@ -5,6 +5,11 @@ import {
 } from "../../common/js/profile.js";
 
 import {
+    updateNavigation,
+    updatePageHeader
+} from "../../common/js/layout.js";
+
+import {
     loadMenu
 } from "./menu.js";
 
@@ -60,24 +65,6 @@ function hideSections() {
     });
 }
 
-function updateNavigation(section) {
-    document.querySelectorAll(".nav-item").forEach(item => {
-        item.classList.toggle("active", item.dataset.section === section);
-    });
-}
-
-function updatePageHeader(title, subtitle) {
-    const titleElement = document.getElementById("pageTitle");
-    const subtitleElement = document.getElementById("pageSubtitle");
-
-    if (titleElement) {
-        titleElement.textContent = title;
-    }
-
-    if (subtitleElement) {
-        subtitleElement.textContent = subtitle;
-    }
-}
 
 async function logout() {
     try {

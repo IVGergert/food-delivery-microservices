@@ -28,7 +28,11 @@ class CourierServiceImplTest {
 
     @Test
     void goOnline_shouldChangeOfflineToAvailableAndSave() {
-        Courier courier = courier(1L, 10L, CourierStatus.OFFLINE);
+        Courier courier = courier(
+                1L,
+                10L,
+                CourierStatus.OFFLINE
+        );
 
         when(courierRepository.findByUserId(10L))
                 .thenReturn(Optional.of(courier));
@@ -50,7 +54,11 @@ class CourierServiceImplTest {
 
     @Test
     void goOnline_shouldNotSaveAlreadyAvailableCourier() {
-        Courier courier = courier(1L, 10L, CourierStatus.AVAILABLE);
+        Courier courier = courier(
+                1L,
+                10L,
+                CourierStatus.AVAILABLE
+        );
 
         when(courierRepository.findByUserId(10L))
                 .thenReturn(Optional.of(courier));
@@ -76,7 +84,11 @@ class CourierServiceImplTest {
 
     @Test
     void goOffline_shouldChangeAvailableToOffline() {
-        Courier courier = courier(1L, 10L, CourierStatus.AVAILABLE);
+        Courier courier = courier(
+                1L,
+                10L,
+                CourierStatus.AVAILABLE
+        );
 
         when(courierRepository.findByUserId(10L))
                 .thenReturn(Optional.of(courier));
@@ -109,7 +121,9 @@ class CourierServiceImplTest {
 
         assertThatThrownBy(() -> service.goOffline(10L))
                 .isInstanceOf(CourierNotAvailableException.class)
-                .hasMessage("Cannot go offline while having an active delivery!");
+                .hasMessage(
+                        "Cannot go offline while having an active delivery!"
+                );
 
         verify(courierRepository, never())
                 .save(any(Courier.class));
@@ -127,7 +141,11 @@ class CourierServiceImplTest {
 
     @Test
     void getStatus_shouldReturnCurrentStatus() {
-        Courier courier = courier(1L, 10L, CourierStatus.AVAILABLE);
+        Courier courier = courier(
+                1L,
+                10L,
+                CourierStatus.AVAILABLE
+        );
 
         when(courierRepository.findByUserId(10L))
                 .thenReturn(Optional.of(courier));
@@ -150,7 +168,11 @@ class CourierServiceImplTest {
 
     @Test
     void validateLogout_shouldAllowOfflineCourier() {
-        Courier courier = courier(1L, 10L, CourierStatus.OFFLINE);
+        Courier courier = courier(
+                1L,
+                10L,
+                CourierStatus.OFFLINE
+        );
 
         when(courierRepository.findByUserId(10L))
                 .thenReturn(Optional.of(courier));
@@ -163,7 +185,11 @@ class CourierServiceImplTest {
 
     @Test
     void validateLogout_shouldRejectOnlineCourier() {
-        Courier courier = courier(1L, 10L, CourierStatus.AVAILABLE);
+        Courier courier = courier(
+                1L,
+                10L,
+                CourierStatus.AVAILABLE
+        );
 
         when(courierRepository.findByUserId(10L))
                 .thenReturn(Optional.of(courier));
@@ -192,7 +218,8 @@ class CourierServiceImplTest {
         return Courier.builder()
                 .id(id)
                 .userId(userId)
-                .name("Alex")
+                .firstName("Alex")
+                .lastName("Smith")
                 .courierStatus(status)
                 .build();
     }

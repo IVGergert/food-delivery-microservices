@@ -1,3 +1,7 @@
+import {
+    updatePageHeader
+} from "./layout.js";
+
 const ROLE_LABELS = {
     ROLE_CUSTOMER: "Клиент",
     ROLE_COURIER: "Курьер",
@@ -17,7 +21,7 @@ export async function showProfile(api) {
 
     profileSection?.classList.remove("hidden");
 
-    setPageHeader(
+    updatePageHeader(
         "Профиль",
         "Ваши личные данные"
     );
@@ -271,9 +275,7 @@ async function changeEmail(api) {
 }
 
 function closeChangeEmailModal() {
-    document
-        .getElementById("changeEmailModal")
-        ?.remove();
+    closeModal("changeEmailModal");
 }
 
 function openChangePasswordModal(api) {
@@ -299,12 +301,12 @@ function openChangePasswordModal(api) {
 
                 <div class="form-group">
                     <label for="newPassword">Новый пароль</label>
-                    <input type="password" id="newPassword" placeholder="Введите новый пароль" minlength="6" maxlength="16">
+                    <input type="password" id="newPassword" placeholder="Введите новый пароль">
                 </div>
 
                 <div class="form-group">
                     <label for="confirmPassword">Подтверждение пароля</label>
-                    <input type="password" id="confirmPassword" placeholder="Повторите новый пароль" minlength="6" maxlength="16">
+                    <input type="password" id="confirmPassword" placeholder="Повторите новый пароль">
                 </div>
 
                 <div class="alert hidden" id="changePasswordError"></div>
@@ -319,16 +321,13 @@ function openChangePasswordModal(api) {
 
     document.body.appendChild(modal);
 
-    modal
-        .querySelector("#closeChangePasswordModal")
+    modal.querySelector("#closeChangePasswordModal")
         .addEventListener("click", closeChangePasswordModal);
 
-    modal
-        .querySelector("#cancelChangePassword")
+    modal.querySelector("#cancelChangePassword")
         .addEventListener("click", closeChangePasswordModal);
 
-    modal
-        .querySelector("#saveNewPassword")
+    modal.querySelector("#saveNewPassword")
         .addEventListener("click", () => changePassword(api));
 }
 
@@ -376,24 +375,25 @@ async function changePassword(api) {
 }
 
 function closeChangePasswordModal() {
+    closeModal("changePasswordModal");
+}
+
+function closeModal(modalId) {
     document
-        .getElementById("changePasswordModal")
+        .getElementById(modalId)
         ?.remove();
 }
 
 function showModalError(elementId, message) {
-    const element = document.getElementById(elementId);
-
-    if (!element) {
-        return;
-    }
-
-    element.textContent = message;
-    element.className = "alert alert-danger";
+    setMessage(elementId, message, false);
 }
 
 function showProfileMessage(message, success) {
-    const element = document.getElementById("profileError");
+    setMessage("profileError", message, success);
+}
+
+function setMessage(elementId, message, success) {
+    const element = document.getElementById(elementId);
 
     if (!element) {
         return;
@@ -416,18 +416,6 @@ function hideProfileMessage() {
     element.className = "alert hidden";
 }
 
-function setPageHeader(title, subtitle) {
-    const titleElement = document.getElementById("pageTitle");
-    const subtitleElement = document.getElementById("pageSubtitle");
-
-    if (titleElement) {
-        titleElement.textContent = title;
-    }
-
-    if (subtitleElement) {
-        subtitleElement.textContent = subtitle;
-    }
-}
 
 document.addEventListener("close-modals", () => {
     closeChangeEmailModal();

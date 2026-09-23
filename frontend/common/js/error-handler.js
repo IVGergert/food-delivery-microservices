@@ -24,7 +24,11 @@ const ERROR_TRANSLATIONS = {
     "Delivery not found": "Доставка не найдена",
     "Delivery has already been accepted.": "Эта доставка уже была принята.",
     "Cannot logout while courier is online or has an active delivery!": "Нельзя выйти из аккаунта, пока курьер находится на линии или выполняет доставку.",
-    "You cannot access someone else's delivery!": "Вы не можете получить доступ к чужой доставке."
+    "You cannot access someone else's delivery!": "Вы не можете получить доступ к чужой доставке.",
+    "Menu item name cannot be empty": "Название блюда не может быть пустым",
+    "Menu item price cannot be null": "Цена блюда обязательна",
+    "Menu item price must be greater than 0": "Цена блюда должна быть больше 0",
+    "Menu item category cannot be null": "Категория блюда обязательна"
 };
 
 const DEFAULT_ERROR_MESSAGES = {
@@ -37,6 +41,10 @@ const DEFAULT_ERROR_MESSAGES = {
 };
 
 export async function getErrorMessage(response) {
+    if (!response) {
+        return "Не удалось получить ответ от сервера.";
+    }
+
     const data = await response.json().catch(() => null);
 
     if (data?.message) {
@@ -57,6 +65,10 @@ function translateError(message) {
 
     if (message.startsWith("User with email ")) {
         return "Пользователь с таким email уже существует";
+    }
+
+    if (message.startsWith("Menu item with id `")) {
+        return "Блюдо с таким ID не найдено";
     }
 
     return message;

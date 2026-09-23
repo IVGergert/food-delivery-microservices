@@ -11,7 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,11 +25,10 @@ public class MenuServiceImpl implements MenuService {
     @Cacheable("menu")
     @Transactional(readOnly = true)
     public List<MenuItemDto> getAllItems() {
-        List<MenuItem> menuItems = menuItemRepository.findAll();
-
-        return menuItems.stream()
+        return menuItemRepository.findAll()
+                .stream()
                 .map(menuMapper::toMenuDto)
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Override
@@ -44,4 +45,5 @@ public class MenuServiceImpl implements MenuService {
 
         return menuMapper.toMenuDto(menuItem);
     }
+
 }

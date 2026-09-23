@@ -1,12 +1,10 @@
 package com.gergert.deliveryservice.kafka;
 
 import com.gergert.common.dto.kafka.CourierCreatedEventDto;
-import com.gergert.common.dto.kafka.OrderPaidEventDto;
 import com.gergert.deliveryservice.entity.Courier;
 import com.gergert.deliveryservice.entity.CourierStatus;
 import com.gergert.deliveryservice.entity.TransportType;
 import com.gergert.deliveryservice.repository.CourierRepository;
-import com.gergert.deliveryservice.service.DeliveryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -36,15 +34,18 @@ public class CourierCreatedListener {
 
         Courier courier = Courier.builder()
                 .userId(eventDto.userId())
-                .name(eventDto.name())
+                .firstName(eventDto.firstName())
+                .lastName(eventDto.lastName())
                 .transportType(TransportType.valueOf(eventDto.transportType()))
                 .courierStatus(CourierStatus.OFFLINE)
                 .build();
 
         courierRepository.save(courier);
 
-        log.info("Courier created successfully: userId={}, name={}",
+        log.info("Courier created successfully: userId={}, name={}, last_name={}",
                 eventDto.userId(),
-                eventDto.name());
+                eventDto.firstName(),
+                eventDto.lastName())
+        ;
     }
 }

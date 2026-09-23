@@ -144,4 +144,5 @@ class RequestDtoValidationTest {
                 .extracting(ConstraintViolation::getMessage)
                 .contains("Payment method must not be null");
     }
+
 }

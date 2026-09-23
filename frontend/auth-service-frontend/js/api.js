@@ -1,17 +1,12 @@
 import {
-    requestJson
+    requestJson,
+    jsonOptions
 } from "../../common/js/api-client.js";
 
 export function login(payload) {
     return requestJson(
         "/api/auth/login",
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        },
+        jsonOptions("POST", payload),
         false
     );
 }
@@ -19,13 +14,7 @@ export function login(payload) {
 export function register(payload) {
     return requestJson(
         "/api/auth/register",
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        },
+        jsonOptions("POST", payload),
         false
     );
 }

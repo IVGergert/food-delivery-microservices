@@ -38,3 +38,4 @@ jwt:
 kafka:
   topics:
     courier-created-events: "courier-created-topic"
+    courier-update-events: "courier-update-topic"

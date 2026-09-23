@@ -105,7 +105,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         DeliveryAssignedEventDto kafkaEvent = DeliveryAssignedEventDto.builder()
                 .orderId(delivery.getOrderId())
                 .courierId(courier.getId())
-                .courierName(courier.getName())
+                .courierName(courier.getFirstName())
                 .address(delivery.getAddress())
                 .etaMinutes(delivery.getEtaMinutes())
                 .build();
@@ -116,7 +116,7 @@ public class DeliveryServiceImpl implements DeliveryService {
                 kafkaEvent
         );
 
-        log.info("Courier {} accepted order {}", courier.getName(), orderId);
+        log.info("Courier {} accepted order {}", courier.getFirstName(), orderId);
 
         return deliveryMapper.toDeliveryDto(delivery);
     }
@@ -140,7 +140,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         deliveryRepository.save(delivery);
         courierRepository.save(courier);
 
-        log.info("Order {} picked up by courier {}. On the way to customer!", orderId, courier.getName());
+        log.info("Order {} picked up by courier {}. On the way to customer!", orderId, courier.getFirstName());
 
         kafkaTemplate.send(
                 orderPickedUpTopic,
@@ -172,7 +172,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         deliveryRepository.save(delivery);
         courierRepository.save(courier);
 
-        log.info("Order {} delivered successfully by courier {}.", orderId, courier.getName());
+        log.info("Order {} delivered successfully by courier {}.", orderId, courier.getFirstName());
 
         kafkaTemplate.send(
                 deliveryCompletedTopic,

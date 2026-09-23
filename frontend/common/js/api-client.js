@@ -9,6 +9,16 @@ const MUTATING_METHODS = new Set([
     "DELETE"
 ]);
 
+export function jsonOptions(method, body = {}) {
+    return {
+        method,
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+    };
+}
+
 let refreshPromise = null;
 
 function getCsrfToken() {
@@ -87,11 +97,10 @@ function redirectToLogin() {
     }
 }
 
-async function request(
-    url,
-    options = {},
-    retryUnauthorized = true
-) {
+async function request(url,
+                       options = {},
+                       retryUnauthorized = true) {
+
     const method = (options.method || "GET").toUpperCase();
     const headers = {
         ...(options.headers || {})

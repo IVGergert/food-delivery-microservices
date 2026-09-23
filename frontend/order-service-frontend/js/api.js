@@ -1,51 +1,18 @@
 import {
-    requestJson
+    requestJson,
+    jsonOptions
 } from "../../common/js/api-client.js";
 
-function jsonOptions(method, body) {
-    return {
-        method,
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-    };
-}
+export {
+    getProfile,
+    updateProfile,
+    changeEmail,
+    changePassword
+} from "../../common/js/profile-api.js";
 
-export function getProfile() {
-    return requestJson("/api/users/me/profile");
-}
-
-export function updateProfile(payload) {
-    return requestJson(
-        "/api/users/me/profile",
-        jsonOptions("PUT", payload)
-    );
-}
-
-export function changeEmail(payload) {
-    return requestJson(
-        "/api/users/me/email",
-        jsonOptions("PUT", payload)
-    );
-}
-
-export function changePassword(payload) {
-    return requestJson(
-        "/api/users/me/password",
-        jsonOptions("PUT", payload)
-    );
-}
-
-export function logout() {
-    return requestJson(
-        "/api/auth/logout",
-        {
-            method: "POST"
-        },
-        false
-    );
-}
+export {
+    logout
+} from "../../common/js/session-api.js";
 
 export function getMenu() {
     return requestJson("/api/menu");

@@ -1,0 +1,281 @@
+.sidebar-header {
+    padding: var(--spacing-6);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-header h1 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.sidebar-header span {
+    display: block;
+    margin-top: var(--spacing-1);
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 13px;
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    padding: var(--spacing-5);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-footer span {
+    display: block;
+    overflow: hidden;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.section-card {
+    width: 100%;
+    overflow: hidden;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.section-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--spacing-5);
+    padding: var(--spacing-6);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.section-card-header h2 {
+    margin: 0;
+}
+
+.section-card-header p {
+    margin: var(--spacing-1) 0 0;
+    color: var(--color-text-secondary);
+}
+
+.section-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--spacing-3);
+    flex-wrap: wrap;
+}
+
+.users-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: var(--spacing-4);
+    padding: var(--spacing-5) var(--spacing-6);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.users-toolbar .form-group {
+    margin: 0;
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.users-table {
+    width: 100%;
+    min-width: 950px;
+    border-collapse: collapse;
+}
+
+.users-table th,
+.users-table td {
+    padding: var(--spacing-4) var(--spacing-5);
+    text-align: left;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.users-table th {
+    background: var(--color-surface-secondary);
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.users-table td {
+    color: var(--color-text);
+    font-size: 14px;
+}
+
+.users-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.users-table tbody tr:hover {
+    background: var(--color-surface-secondary);
+}
+
+.user-id {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.user-email {
+    min-width: 200px;
+}
+
+.user-name {
+    white-space: nowrap;
+}
+
+.user-transport {
+    white-space: nowrap;
+}
+
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.role-admin {
+    background: rgba(22, 163, 74, 0.12);
+    color: #15803d;
+}
+
+.role-courier {
+    background: rgba(59, 130, 246, 0.12);
+    color: #2563eb;
+}
+
+.role-customer {
+    background: rgba(100, 116, 139, 0.12);
+    color: #475569;
+}
+
+.table-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    flex-wrap: wrap;
+}
+
+.table-action-button {
+    height: 34px;
+    padding: 0 11px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+            background-color 0.15s ease,
+            border-color 0.15s ease,
+            transform 0.15s ease;
+}
+
+.table-action-button:hover {
+    background: var(--color-surface-secondary);
+    border-color: var(--color-primary);
+}
+
+.table-action-button:active {
+    transform: translateY(1px);
+}
+
+.table-action-button.primary {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: var(--color-text-on-primary);
+}
+
+.table-action-button.primary:hover {
+    background: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+}
+
+.loading {
+    padding: var(--spacing-6);
+    text-align: center;
+    color: var(--color-text-secondary);
+}
+
+.empty-state {
+    padding: var(--spacing-8);
+    text-align: center;
+    color: var(--color-text-secondary);
+}
+
+.admin-modal {
+    width: min(520px, calc(100vw - 40px));
+}
+
+.admin-modal .modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4);
+}
+
+.admin-modal .form-group {
+    margin: 0;
+}
+
+.admin-modal-message {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.admin-modal .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-3);
+}
+
+.logout-button {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px 12px;
+
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+
+    background: transparent;
+    color: #ffffff;
+
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.logout-button:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 1000px) {
+    .section-card-header {
+        flex-direction: column;
+    }
+
+    .section-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 700px) {
+    .users-toolbar {
+        grid-template-columns: 1fr;
+    }
+}

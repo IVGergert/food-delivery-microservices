@@ -5,12 +5,9 @@ import {
 
 import {
     escapeHtml,
-    formatDate
-} from "../../common/js/utils.js";
-
-import {
+    formatDate,
     formatPrice
-} from "./utils.js";
+} from "../../common/js/utils.js";
 
 import {
     showError,

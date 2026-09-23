@@ -45,6 +45,7 @@ kafka:
     order-picked-up-events: "order-picked-up-topic"
     delivery-completed-events: "delivery-completed-topic"
     courier-created-events: "courier-created-topic"
+    courier-update-events: "courier-update-topic"
 
 management:
   endpoints:
